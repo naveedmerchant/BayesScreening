@@ -76,7 +76,7 @@ integrand.Hall=function(h,y,x,cons,hhat){
 #' @param x Training set to build the KDE
 #' @param hhat Parameter that specifies where prior should be centered
 #'
-#' @return
+#' @return Evaluation of the integrand at a particular log likelihood value.
 #' @export
 #'
 #' @examples
@@ -91,6 +91,17 @@ logintegrand.Hall=function(h,y,x,hhat){
 }
 
 
+#' Title
+#'
+#' @param y Validation Set
+#' @param x Training set
+#' @param hhat Bandwidth parameter that maximizes the log likelihood
+#' @param c A constant that is equal to the log likelihood + log prior evaluated at the maximum
+#'
+#' @return
+#' @export
+#'
+#' @examples
 laplace.kernH2c = function(y,x,hhat,c){
   
   n=length(x)
@@ -107,8 +118,22 @@ laplace.kernH2c = function(y,x,hhat,c){
 }
 
 
+#' Title
+#'
+#' @param dataset1 One dataset that we want to check if it has the same distribution as another data set
+#' @param dataset2 Another dataset that we want to check if it has the same distribution as another data set
+#' @param trainsize1 The training set size of dataset 1
+#' @param trainsize2 The training set size of dataset 2
+#' @param seed The seed used to generate training set and validation sets for both of the data sets
+#'
+#' @return
+#' @export
+#'
+#' @examples
 CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NULL)
 {
+  #Probably add training_ids and validation_ids later?
+  
   if(!is.null(seed))
   {
     set.seed(seed)
@@ -138,3 +163,23 @@ CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NUL
   return(logBF = ExpectedKernML1[1] + ExpectedKernML2[1] - ExpectedKernMLcomb[1])
 }
 
+
+#' Title
+#'
+#' @param h Bandwidth parameter
+#' @param datagen2 Training set for Hall KDE
+#' @param x Value (or values) to evaluate KDE on. Can be a scalar, a matrix, or a vector.
+#'
+#' @return An object of the same dimension as x that evaluates a KDE trained on datagen2 on everyone of the points in x
+#' @export
+#'
+#' @examples
+HallKernel = function(h,datagen2,x)
+{
+  sum = 0
+  for(i in 1:length(datagen2))
+  {
+    sum = sum + (((8*pi*exp(1))^.5)*pnorm(1))^(-1)*exp(-.5*(log(1+abs(x - datagen2[i])/h)^2))
+  }
+  return((1/(length(datagen2) * h)) * sum)
+}

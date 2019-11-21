@@ -6,12 +6,15 @@
 #' @param c A tuning parameter corresponding to how influential the prior should be. Authors recommend to set to 1. Can change from 1. The larger the tuning parameter the more influential the prior. The smaller the tuning parameter the less influential the prior.
 #' @param leveltot Total number of levels deep the tree should go. 9 is given as a default. Some authors recommend going to $log_2(sample size)$, but doesn't need to be done. The deeper the tree the more computation that is required. 
 #'
-#' @return Currently returns a scalar that corresponds to the log BF of the computed test
+#' @return Currently returns a scalar that corresponds to the log BF of the computed test. 
 #' @export
 #'
 #' @examples
 PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = 1, leveltot = 9)  
 {
+  #A lot of places can be sped up I think by predefining epsilon list and epsilonlist2.
+  #The loops themselves also take some time, maybe we can throw the whole thing into C, but the problem is that
+  #We have a jagged matrix that's essentially run with a list rn, changing that to be in C might be trickier than it sounds.
   alphalist = list()
   for(m in 1:leveltot)
   {
