@@ -1,3 +1,7 @@
+datasetX = rnorm(500)
+
+datasetY = rnorm(500)
+
 
 sampPT1 = PolyaTreePriorLikCons(datasetX = datasetX)
 
@@ -39,75 +43,75 @@ plot(seq(from = -4, to = 4, length.out = 100) , predpostsamp(seq(from = -4, to =
 
 #Mixing seems nice enough
 
-library(coda)
-plot(predbwvec2$predbwsamp)
-autocorr.plot(predbwvec2$predbwsamp, auto.layout = FALSE)
-
-plot(predbwvec1$predbwsamp)
-autocorr.plot(predbwvec1$predbwsamp, auto.layout = FALSE)
-
-#Maybe take every 10th sample?
-
-thinnedbwvec = bwvec[seq(1,length(bwvec),10)]
-#thinnedbwvec = thinnedbwvec[-1]
-
-predpostavg = 0
-for(j in 1:length(thinnedbwvec))
-{
-  predpostavg = (1/length(thinnedbwvec))*HallKernel(thinnedbwvec[j], datagen = XT1, seq(from = -4, to = 4, length.out = 1000)) + predpostavg
-}
-
-plot(seq(from = -4, to = 4, length.out = 1000), predpostavg, col = "purple")
-lines(seq(from = -4, to = 4, length.out = 1000), dnorm(seq(from = -4, to = 4, length.out = 1000)))
-
-plot(seq(from = -10, to = 10, length.out = 1000), dnorm(seq(from = -10, to = 10, length.out = 1000)))
-lines(seq(from = -10, to = 10, length.out = 1000), predpostavg, col = "purple")
-
-
-
-
-
-XT1 = datasetX[1:250]
-XV1 = datasetX[251:500]
-likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
-bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
-
-bwvec = c()
-bwvec[1] = bwlik$maximum
-beta = bwlik$maximum
-postcurr = sum(log(HallKernel(bwvec[1], datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwvec[1]) - (beta^2 / bwvec[1]^2)
-#Lets try a normal proposal first 
-#N(0,.05)
-acceptances = 0
-#tic()
-iter = 10000
-for(j in 1:iter)
-{
-  bwprop = rnorm(1, mean = bwvec[j], sd = .05)
-  if(bwprop <= 0)
-  {
-    bwvec[j+1] = bwvec[j]
-  }
-  else
-  {
-    postprop = sum(log(HallKernel(bwprop, datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwprop) - (beta^2 / bwprop^2)
-    logpostdif = postprop - postcurr
-    if(exp(logpostdif) > runif(1))
-    {
-      bwvec[j+1] = bwprop
-      postcurr = sum(log(HallKernel(bwvec[j+1], datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwvec[j+1]) - (beta^2 / bwvec[j+1]^2)
-      acceptances = acceptances + 1
-    }
-    else
-    {
-      bwvec[j+1] = bwvec[j]
-    }
-  }
-}
-#toc()
-plot(bwvec)
-
-predpostsamp2 = PredCVBFDens(bwvec = bwvec, XT1 = XT1)
-
-plot(seq(from = -4, to = 4, length.out = 100) , predpostsamp2(seq(from = -4, to = 4, length.out = 100)))
+# library(coda)
+# plot(predbwvec2$predbwsamp)
+# autocorr.plot(predbwvec2$predbwsamp, auto.layout = FALSE)
+# 
+# plot(predbwvec1$predbwsamp)
+# autocorr.plot(predbwvec1$predbwsamp, auto.layout = FALSE)
+# 
+# #Maybe take every 10th sample?
+# 
+# thinnedbwvec = bwvec[seq(1,length(bwvec),10)]
+# #thinnedbwvec = thinnedbwvec[-1]
+# 
+# predpostavg = 0
+# for(j in 1:length(thinnedbwvec))
+# {
+#   predpostavg = (1/length(thinnedbwvec))*HallKernel(thinnedbwvec[j], datagen = XT1, seq(from = -4, to = 4, length.out = 1000)) + predpostavg
+# }
+# 
+# plot(seq(from = -4, to = 4, length.out = 1000), predpostavg, col = "purple")
+# lines(seq(from = -4, to = 4, length.out = 1000), dnorm(seq(from = -4, to = 4, length.out = 1000)))
+# 
+# plot(seq(from = -10, to = 10, length.out = 1000), dnorm(seq(from = -10, to = 10, length.out = 1000)))
+# lines(seq(from = -10, to = 10, length.out = 1000), predpostavg, col = "purple")
+# 
+# 
+# 
+# 
+# 
+# XT1 = datasetX[1:250]
+# XV1 = datasetX[251:500]
+# likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+# bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+# 
+# bwvec = c()
+# bwvec[1] = bwlik$maximum
+# beta = bwlik$maximum
+# postcurr = sum(log(HallKernel(bwvec[1], datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwvec[1]) - (beta^2 / bwvec[1]^2)
+# #Lets try a normal proposal first 
+# #N(0,.05)
+# acceptances = 0
+# #tic()
+# iter = 10000
+# for(j in 1:iter)
+# {
+#   bwprop = rnorm(1, mean = bwvec[j], sd = .05)
+#   if(bwprop <= 0)
+#   {
+#     bwvec[j+1] = bwvec[j]
+#   }
+#   else
+#   {
+#     postprop = sum(log(HallKernel(bwprop, datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwprop) - (beta^2 / bwprop^2)
+#     logpostdif = postprop - postcurr
+#     if(exp(logpostdif) > runif(1))
+#     {
+#       bwvec[j+1] = bwprop
+#       postcurr = sum(log(HallKernel(bwvec[j+1], datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwvec[j+1]) - (beta^2 / bwvec[j+1]^2)
+#       acceptances = acceptances + 1
+#     }
+#     else
+#     {
+#       bwvec[j+1] = bwvec[j]
+#     }
+#   }
+# }
+# #toc()
+# plot(bwvec)
+# 
+# predpostsamp2 = PredCVBFDens(bwvec = bwvec, XT1 = XT1)
+# 
+# plot(seq(from = -4, to = 4, length.out = 100) , predpostsamp2(seq(from = -4, to = 4, length.out = 100)))
 

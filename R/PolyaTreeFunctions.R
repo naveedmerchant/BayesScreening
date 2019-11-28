@@ -200,19 +200,19 @@ PolyaTreePredDraws <- function(PolyaTreePriorLik, ndraw = 2000)
   #We construct a large list at the beginning to get decent samples by drawing from this list
   #Better to do this then to do rejection sampling an incredibly large amount of times.
   
-  for(j in 1:leveltot)
+  for(j in 1:PolyaTreePriorLik$leveltot)
   {
-    postbetalist[[j]] = splitlist[[j]] + alphalist[[j]]
+    postbetalist[[j]] = PolyaTreePriorLik$splitlist[[j]] + PolyaTreePriorLik$alphalist[[j]]
     #Leveltot shouldn't actually be that large, so this should be pretty fast
     #Posterior of beta binomial is a beta with above coefficients
   }
   
   posteriorPTdraw = rep(NULL, times = ndraw)
   k = 1
-  #indlist = c()
+  epsilonlist = rep(0, times = PolyaTreePriorLik$leveltot)
   for(i in 1:ndraw)
   {
-    for(m in 1:leveltot)
+    for(m in 1:PolyaTreePriorLik$leveltot)
     {
       postdraw = rbinom(1, size = 1, prob = postbetalist[[m]][k] / (postbetalist[[m]][k+1]+ postbetalist[[m]][k]))
       if(postdraw == 1)
@@ -229,13 +229,13 @@ PolyaTreePredDraws <- function(PolyaTreePriorLik, ndraw = 2000)
     }
     #epsilonlist2[[j]] <- epsilonlist
     #need to draw from qnorm((ind - 1) / 2^9)  qnorm(ind / 2^9)
-    if(epsilonlist[leveltot] == 0)
+    if(epsilonlist[PolyaTreePriorLik$leveltot] == 0)
     {
-      posteriorPTdraw[i] = sample(largeqnormlist[(largeqnormlist < PolyaTreePriorLik$Ginv(ind / 2^(leveltot+1))) & (largeqnormlist > qnorm((ind-1) / 2^(leveltot+1)))], size = 1)
+      posteriorPTdraw[i] = sample(largeqnormlist[(largeqnormlist < PolyaTreePriorLik$Ginv(ind / 2^(PolyaTreePriorLik$leveltot+1))) & (largeqnormlist > qnorm((ind-1) / 2^(PolyaTreePriorLik$leveltot+1)))], size = 1)
     }
     else
     {
-      posteriorPTdraw[i] = sample(largeqnormlist[(largeqnormlist < PolyaTreePriorLik$Ginv((ind+1) / 2^(leveltot+1))) & (largeqnormlist > qnorm((ind) / 2^(leveltot+1)))], size = 1)
+      posteriorPTdraw[i] = sample(largeqnormlist[(largeqnormlist < PolyaTreePriorLik$Ginv((ind+1) / 2^(PolyaTreePriorLik$leveltot+1))) & (largeqnormlist > qnorm((ind) / 2^(PolyaTreePriorLik$leveltot+1)))], size = 1)
     }
     epsilonlist = c()
     #indlist[i] = ind
