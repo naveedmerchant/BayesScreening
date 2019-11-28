@@ -1,3 +1,12 @@
+#' Title
+#'
+#' @param h A value to evaluate the prior on
+#' @param hhat Tuning parameter for the prior
+#'
+#' @return Evaluates a particular type of prior placed on the bandwidth for CVBF.
+#' @export
+#'
+#' @examples
 logpriorused <- function(h,hhat)
 {
   beta = hhat
@@ -106,7 +115,7 @@ logintegrand.Hall=function(h, y, x, hhat){
 #' @param hhat Bandwidth parameter that maximizes the log likelihood
 #' @param c A constant that is equal to the log likelihood + log prior evaluated at the maximum
 #'
-#' @return
+#' @return Evaluation of the CVBF marginal likelihood via Laplace Approximation.
 #' @export
 #'
 #' @examples
@@ -130,7 +139,7 @@ laplace.kernH2c = function(y, x, hhat, c){
 #' @param trainsize2 The training set size of dataset 2
 #' @param seed The seed used to generate training set and validation sets for both of the data sets
 #'
-#' @return
+#' @return A log BF that tests whether two distributions are the same via CVBF.
 #' @export
 #'
 #' @examples
@@ -190,6 +199,19 @@ HallKernel = function(h,datagen2,x)
 
 
 
+#' Title
+#'
+#' @param ndraw Number of unique draws desired for the bandwidth parameter from the posterior.
+#' @param propsd A tuning parameter, corresponds to what proposal standard deviation should be for when using MH to traverse the posterior. Should be chosen with care to ensure good mixing.
+#' @param maxIter The max number of MH iterations to try. Do not set to be too large. It will kick the code out if acceptance rates for MH are small.
+#' @param XT1 Training set for a data set
+#' @param XV1 Validation set for a data set
+#' @param startingbw A value to start the MH chain at. If not provided, starts at posterior mode.
+#'
+#' @return A list of bandwidths that come from the posterior distribution. This will be larger than ndraw, as some draws will be repeats.
+#' @export
+#'
+#' @examples
 PredCVBFMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, startingbw = NULL)
 {
   bwvec = c()
@@ -243,6 +265,19 @@ PredCVBFMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, sta
 }
 
 
+#' Title
+#'
+#' @param ndraw Number of unique draws desired for the bandwidth parameter from the posterior.
+#' @param propsd A tuning parameter, corresponds to what proposal standard deviation should be for when using MH to traverse the posterior. Should be chosen with care to ensure good mixing. Higher acceptance rates are OK here, compared to classic MH.
+#' @param maxIter The max number of MH iterations to try. Do not set to be too large. It will kick the code out if acceptance rates for MH are small.
+#' @param XT1 Training set for a data set
+#' @param XV1 Validation set for a data set
+#' @param startingbw A value to start the MH chain at. If not provided, starts at posterior mode. All proposals will be drawn from a distribution whose center is startingbw. This is normally a bad idea, but the posterior is some type of unimodal distribution, so this is actually effective.
+#'
+#' @return A list of bandwidths that come from the posterior distribution. This will be larger than ndraw, as some draws will be repeats.
+#' @export
+#'
+#' @examples
 PredCVBFIndepMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, startingbw = NULL)
 {
   bwvec = c()
@@ -295,6 +330,15 @@ PredCVBFIndepMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1
   return(list(predbwsamp = bwvec, acceptancetot = acceptances, drawtot = j))
 }
 
+#' Title
+#'
+#' @param bwvec A vector of bandwidths, can come from either of the methods that draw bandwidths from the posterior.
+#' @param XT1 The training set
+#'
+#' @return A function that evaluates the predictive posterior at particular values
+#' @export
+#'
+#' @examples
 PredCVBFDens = function(bwvec, XT1)
 {
   PredictedDens = function(support)

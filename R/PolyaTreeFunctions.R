@@ -83,6 +83,17 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = 1, leveltot = 9)
   
 }
 
+#' Title
+#'
+#' @param datasetX A dataset to compute the Polya Tree prior on
+#' @param Ginv A quantile function of some distribution, use to make bins
+#' @param c A scalar. The higher this is, the more influential the prior is on the data set.
+#' @param leveltot The number of levels the Polya Tree should go down.
+#'
+#' @return A list of vectors called alphalist, a list of vectors called splitlist, c, leveltot, and Ginv. Alphalist is used to construct a prior. Splitlist is used to construct a likelihood. Call the collection of these a Polya Tree object.
+#' @export
+#'
+#' @examples
 PolyaTreePriorLikCons <- function(datasetX, Ginv = qnorm, c = 1, leveltot = 9)  
 {
   alphalist = list()
@@ -116,6 +127,15 @@ PolyaTreePriorLikCons <- function(datasetX, Ginv = qnorm, c = 1, leveltot = 9)
   return(list(alphalist = alphalist, splitlist = splitlist, c = c, leveltot = leveltot, Ginv = Ginv))
 }
 
+#' Title
+#'
+#' @param PolyaTreePriorLik1 An object constructed by PolyaTreePriorLikCons for a dataset. 
+#' @param PolyaTreePriorLik2 Another object constructed by PolyaTreePriorLikCons for another dataset.
+#'
+#' @return A scalar, which corresponds to the log BF of the test. Another vector is given which corresponds to the contribution of the log BF at each level.
+#' @export
+#'
+#' @examples
 PolyaTreeBFcons <- function(PolyaTreePriorLik1, PolyaTreePriorLik2)
 {
   if(PolyaTreePriorLik1$leveltot != PolyaTreePriorLik2$leveltot)
@@ -154,6 +174,15 @@ PolyaTreeBFcons <- function(PolyaTreePriorLik1, PolyaTreePriorLik2)
 
   
 
+#' Title
+#'
+#' @param PolyaTreePriorLik An object constructed by PolyaTreePriorLikCons for a dataset. 
+#' @param ndraw Number of draws desired from Predictive Polya Tree distribution.
+#'
+#' @return A list of draws from the Predictive Polya Tree Posterior  
+#' @export
+#'
+#' @examples
 PolyaTreePredDraws <- function(PolyaTreePriorLik, ndraw = 2000)
 {
   if(ndraw <= 0)
