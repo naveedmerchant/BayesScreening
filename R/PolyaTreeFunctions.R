@@ -64,13 +64,13 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = 1, leveltot = 9)
     epsilonlist = c()
   }
   
-  bj = c()
+  bj = rep(0, times = leveltot)
   
   for(j in 1:leveltot)
   {
     for(D in 1:(length(alphalist[[j]]) - 1))
     {
-      bj[j] = lbeta(alphalist[[j]][D],alphalist[[j]][D+1]) +
+      bj[j] = bj[j] + lbeta(alphalist[[j]][D],alphalist[[j]][D+1]) +
         lbeta(alphalist[[j]][D] + splitlist[[j]][D] +
                 splitlist2[[j]][D],alphalist[[j]][D+1] +
                 splitlist[[j]][D+1] + splitlist2[[j]][D+1] ) -
@@ -83,7 +83,7 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = 1, leveltot = 9)
   
 }
 
-PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = 1, leveltot = 9)  
+PolyaTreePriorLikCons <- function(datasetX, Ginv = qnorm, c = 1, leveltot = 9)  
 {
   alphalist = list()
   for(m in 1:leveltot)
@@ -113,42 +113,113 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = 1, leveltot = 9)
     epsilonlist2[[j]] <- epsilonlist
     epsilonlist = c()
   }
-  epsilonlist3 = list()
-  splitlist2 = list()
+  return(list(alphalist = alphalist, splitlist = splitlist, c = c, leveltot = leveltot, Ginv = Ginv))
+}
+
+PolyaTreeBFcons <- function(PolyaTreePriorLik1, PolyaTreePriorLik2)
+{
+  if(PolyaTreePriorLik1$leveltot != PolyaTreePriorLik2$leveltot)
+  {
+    stop("Polya Trees go down to different depths, this test is inappropriate")
+  }
+  else{
+    leveltot = PolyaTreePriorLik1$leveltot
+  }
+  
+  if(PolyaTreePriorLik1$c != PolyaTreePriorLik2$c)
+  {
+    stop("Polya Trees are generated with different prior, test is possible, but BF is meaningless")
+  }
+  else{
+    c = PolyaTreePriorLik1$c
+  }
+  #browser()
+  bj = rep(0, times = leveltot)
   for(j in 1:leveltot)
   {
-    splitlist2[[j]] = rep(0,2^j)
+    for(D in 1:(length(PolyaTreePriorLik1$alphalist[[j]]) - 1))
+    {
+      bj[j] = bj[j] + lbeta(PolyaTreePriorLik1$alphalist[[j]][D],PolyaTreePriorLik1$alphalist[[j]][D+1]) +
+        lbeta(PolyaTreePriorLik1$alphalist[[j]][D] + PolyaTreePriorLik1$splitlist[[j]][D] +
+                PolyaTreePriorLik2$splitlist[[j]][D],PolyaTreePriorLik1$alphalist[[j]][D+1] +
+                PolyaTreePriorLik1$splitlist[[j]][D+1] + PolyaTreePriorLik2$splitlist[[j]][D+1] ) -
+        lbeta(PolyaTreePriorLik1$alphalist[[j]][D] + PolyaTreePriorLik1$splitlist[[j]][D], PolyaTreePriorLik1$alphalist[[j]][D+1] + PolyaTreePriorLik1$splitlist[[j]][D+1]) -
+        lbeta(PolyaTreePriorLik1$alphalist[[j]][D] + PolyaTreePriorLik2$splitlist[[j]][D], PolyaTreePriorLik1$alphalist[[j]][D+1] + PolyaTreePriorLik2$splitlist[[j]][D+1])
+
+    }
   }
-  for(j in 1:length(datasetY))
+  return(list(logBF = sum(bj), logBFcont = bj))
+}
+ 
+
+  
+
+PolyaTreePredDraws <- function(PolyaTreePriorLik, ndraw = 2000)
+{
+  if(ndraw <= 0)
   {
-    thresh = .5
+    stop("ndraw should be a positive integer that corresponds to the number of draws you want from the predictive posterior.")
+  }
+  
+  postbetalist = PolyaTreePriorLik$alphalist
+  largeqnormlist = seq(from = 0, to = 1, by = .0000001)
+  largeqnormlist = PolyaTreePriorLik$Ginv(largeqnormlist)
+  
+  #This is actually probably inappropriate for some choices of Ginv
+  #BUT that is a research topic for ANOTHER paper to address!
+  #I'm not actually sure if a package exists that actually constructs and draws from these currently
+  #We construct a large list at the beginning to get decent samples by drawing from this list
+  #Better to do this then to do rejection sampling an incredibly large amount of times.
+  
+  for(j in 1:leveltot)
+  {
+    postbetalist[[j]] = splitlist[[j]] + alphalist[[j]]
+    #Leveltot shouldn't actually be that large, so this should be pretty fast
+    #Posterior of beta binomial is a beta with above coefficients
+  }
+  
+  posteriorPTdraw = rep(NULL, times = ndraw)
+  k = 1
+  #indlist = c()
+  for(i in 1:ndraw)
+  {
     for(m in 1:leveltot)
     {
-      epsilonlist[m] = datasetY[j] > Ginv(thresh)
-      multivec = 2^seq(m-1, 0, -1)
-      ind = sum(epsilonlist[1:m] * multivec) + 1
-      splitlist2[[m]][ind] = splitlist2[[m]][ind] + 1
-      thresh = thresh + (2*epsilonlist[m] - 1) / 2^{m+1}
+      postdraw = rbinom(1, size = 1, prob = postbetalist[[m]][k] / (postbetalist[[m]][k+1]+ postbetalist[[m]][k]))
+      if(postdraw == 1)
+      {
+        epsilonlist[m] = 0
+      }
+      else
+      {
+        epsilonlist[m] = 1
+      }
+      multivec = 2^seq(m, 1, -1)
+      ind = sum(epsilonlist[1:m]*multivec) + 1
+      k = ind
     }
-    epsilonlist3[[j]] <- epsilonlist
-    epsilonlist = c()
-  }
-  
-  bj = c()
-  
-  for(j in 1:leveltot)
-  {
-    for(D in 1:(length(alphalist[[j]]) - 1))
+    #epsilonlist2[[j]] <- epsilonlist
+    #need to draw from qnorm((ind - 1) / 2^9)  qnorm(ind / 2^9)
+    if(epsilonlist[leveltot] == 0)
     {
-      bj[j] = lbeta(alphalist[[j]][D],alphalist[[j]][D+1]) +
-        lbeta(alphalist[[j]][D] + splitlist[[j]][D] +
-                splitlist2[[j]][D],alphalist[[j]][D+1] +
-                splitlist[[j]][D+1] + splitlist2[[j]][D+1] ) -
-        lbeta(alphalist[[j]][D] + splitlist[[j]][D], alphalist[[j]][D+1] + splitlist[[j]][D+1]) -
-        lbeta(alphalist[[j]][D] + splitlist2[[j]][D], alphalist[[j]][D+1] + splitlist2[[j]][D+1])
-      
+      posteriorPTdraw[i] = sample(largeqnormlist[(largeqnormlist < PolyaTreePriorLik$Ginv(ind / 2^(leveltot+1))) & (largeqnormlist > qnorm((ind-1) / 2^(leveltot+1)))], size = 1)
     }
+    else
+    {
+      posteriorPTdraw[i] = sample(largeqnormlist[(largeqnormlist < PolyaTreePriorLik$Ginv((ind+1) / 2^(leveltot+1))) & (largeqnormlist > qnorm((ind) / 2^(leveltot+1)))], size = 1)
+    }
+    epsilonlist = c()
+    #indlist[i] = ind
+    k=1
+    #print(i)
   }
-  return(sum(bj))
+  return(posteriorPTdraw)
   
 }
+
+
+
+
+  
+
+

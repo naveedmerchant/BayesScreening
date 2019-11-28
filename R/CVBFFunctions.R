@@ -1,3 +1,11 @@
+logpriorused <- function(h,hhat)
+{
+  beta = hhat
+  Prior = log(2*beta) - .5*log(pi) - 2*log(h) - (beta^2 / h^2)
+  return(Prior)
+}
+
+
 #' Title
 #'
 #' @param h A bandwidth or vector of bandwidths tot ry out
@@ -8,7 +16,7 @@
 #' @export
 #'
 #' @examples
-loglike.KHall=function(h,y,x){
+loglike.KHall=function(h, y, x){
   
   n = length(x)
   m = length(y)
@@ -37,8 +45,8 @@ loglike.KHall=function(h,y,x){
 #' @examples
 KHall=function(x){
   
-  con=sqrt(8*pi*exp(1))*pnorm(1)
-  K=exp(-0.5*(log(1+abs(x)))^2)/con
+  con = sqrt(8 * pi * exp(1)) * pnorm(1)
+  K=exp(-0.5 * (log(1 + abs(x)))^2) / con
   return(K)
 }
 
@@ -80,12 +88,12 @@ integrand.Hall=function(h,y,x,cons,hhat){
 #' @export
 #'
 #' @examples
-logintegrand.Hall=function(h,y,x,hhat){
+logintegrand.Hall=function(h, y, x, hhat){
   
-  n=length(x)
-  beta=hhat
-  Prior=log(2*beta/sqrt(2*pi))-beta^2/h^2-2*log(h)
-  f=loglike.KHall(h,y,x)-Prior
+  n = length(x)
+  beta = hhat
+  Prior = log(2 * beta / sqrt(2 * pi)) - beta^2 / h^2 - 2 * log(h)
+  f=loglike.KHall(h, y, x) - Prior
   return(f)
   
 }
@@ -102,17 +110,13 @@ logintegrand.Hall=function(h,y,x,hhat){
 #' @export
 #'
 #' @examples
-laplace.kernH2c = function(y,x,hhat,c){
+laplace.kernH2c = function(y, x, hhat, c){
   
-  n=length(x)
-  #start=1.144*(IQR(x)/1.35)*n^(-1/5)
-  
-  #out=optim(start,logintegrand.Hall,method="L-BFGS-B",lower=.0001,upper=5,hessian=T,y=y,x=x,hhat=hhat)
-  #browser()
-  out = hessian(f = function(h) {logintegrand.Hall(h,y=y,x=x,hhat = hhat)}, x = hhat, pert = 10^(-7))
+  n = length(x)
+  out = hessian(f = function(h) {logintegrand.Hall(h, y=y, x=x, hhat = hhat)}, x = hhat, pert = 10^(-7))
   cons = c
-  hess=abs(out)
-  laplace=0.5*log(2*pi)-0.5*log(hess)+cons
+  hess= abs(out)
+  laplace = 0.5 * log(2 * pi) - 0.5 * log(hess) + cons
   c(laplace,hhat,hess)
   
 }
@@ -148,17 +152,17 @@ CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NUL
   
   likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
   bwlik2 = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
-  ExpectedKernML1 = laplace.kernH2c(y = XT1, x = XV1, hhat = bwlik2$maximum, c = bwlik2$objective)
+  ExpectedKernML1 = laplace.kernH2c(y = XT1, x = XV1, hhat = bwlik2$maximum, c = bwlik2$objective + logpriorused(h = bwlik2$maximum, hhat = bwlik2$maximum))
   
   likvec = function(h) {sum(log(HallKernel(h,datagen2 = YT1, x = YV1)))}
   bwlikcy = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
-  ExpectedKernML2 = laplace.kernH2c(y = YT1, x = YV1, hhat = bwlikcy$maximum, c= bwlikcy$objective)
+  ExpectedKernML2 = laplace.kernH2c(y = YT1, x = YV1, hhat = bwlikcy$maximum, c= bwlikcy$objective + logpriorused(h = bwlikcy$maximum, hhat = bwlikcy$maximum))
   
   likveccombc = function(h) {sum(log(HallKernel(h,datagen2 = c(XT1,YT1), x = c(XV1,YV1))))}
   bwlikcombc = optimize(f = function(h){  likveccombc(h)}, lower = 0, upper = 10, maximum = TRUE)
   #ExpectedKernMLcomb = bwlikcombc$objective
   
-  ExpectedKernMLcomb = laplace.kernH2c(y = c(XT1,YT1), x = c(XV1,YV1), hhat = bwlikcy$maximum, c= bwlikcombc$objective)
+  ExpectedKernMLcomb = laplace.kernH2c(y = c(XT1,YT1), x = c(XV1,YV1), hhat = bwlikcombc$maximum, c= bwlikcombc$objective + logpriorused(h = bwlikcombc$maximum, hhat = bwlikcombc$maximum))
   
   return(logBF = ExpectedKernML1[1] + ExpectedKernML2[1] - ExpectedKernMLcomb[1])
 }
@@ -183,3 +187,134 @@ HallKernel = function(h,datagen2,x)
   }
   return((1/(length(datagen2) * h)) * sum)
 }
+
+
+
+PredCVBFMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, startingbw = NULL)
+{
+  bwvec = c()
+  if(is.null(startingbw))
+  {
+    likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+    bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+    startingbw = bwvec[1] = bwlik$maximum
+  }
+  else{
+    bwvec[1] = startingbw
+  }
+  beta = startingbw
+  postcurr = sum(log(HallKernel(bwvec[1], datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwvec[1]) - (beta^2 / bwvec[1]^2)
+  
+  acceptances = 0
+  for(j in 1:maxIter)
+  {
+    bwprop = rnorm(1, mean = bwvec[j], sd = propsd)
+    if(bwprop <= 0)
+    {
+      #bandwidths cannot be negative, ignore sample that was drawn.
+      bwvec[j+1] = bwvec[j]
+    }
+    else
+    {
+      #MH procedure for drawing bandwidths
+      postprop = sum(log(HallKernel(bwprop, datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwprop) - (beta^2 / bwprop^2)
+      logpostdif = postprop - postcurr
+      if(exp(logpostdif) > runif(1))
+      {
+        bwvec[j+1] = bwprop
+        postcurr = sum(log(HallKernel(bwvec[j+1], datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwvec[j+1]) - (beta^2 / bwvec[j+1]^2)
+        acceptances = acceptances + 1
+      }
+      else
+      {
+        bwvec[j+1] = bwvec[j]
+      }
+    }
+    if(acceptances >= ndraw)
+    {
+      break
+    }
+  }
+  if(acceptances < ndraw)
+  {
+    warning(paste("Terminated because max iterations reached. The number of acceptances is", acceptances, "consider changing max iter or propsd"))
+  }
+  return(list(predbwsamp = bwvec, acceptancetot = acceptances, drawtot = j))
+}
+
+
+PredCVBFIndepMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, startingbw = NULL)
+{
+  bwvec = c()
+  if(is.null(startingbw))
+  {
+    likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+    bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+    startingbw = bwvec[1] = bwlik$maximum
+  }
+  else{
+    bwvec[1] = startingbw
+  }
+  beta = startingbw
+  postcurr = sum(log(HallKernel(bwvec[1], datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwvec[1]) - (beta^2 / bwvec[1]^2)
+  
+  acceptances = 0
+  for(j in 1:maxIter)
+  {
+    bwprop = rnorm(1, mean = startingbw, sd = propsd)
+    if(bwprop <= 0)
+    {
+      #bandwidths cannot be negative, ignore sample that was drawn.
+      bwvec[j+1] = bwvec[j]
+    }
+    else
+    {
+      #MH procedure for drawing bandwidths
+      postprop = sum(log(HallKernel(bwprop, datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwprop) - (beta^2 / bwprop^2)
+      logpostdif = postprop - postcurr
+      if(exp(logpostdif) > runif(1))
+      {
+        bwvec[j+1] = bwprop
+        postcurr = sum(log(HallKernel(bwvec[j+1], datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwvec[j+1]) - (beta^2 / bwvec[j+1]^2)
+        acceptances = acceptances + 1
+      }
+      else
+      {
+        bwvec[j+1] = bwvec[j]
+      }
+    }
+    if(acceptances >= ndraw)
+    {
+      break
+    }
+  }
+  if(acceptances < ndraw)
+  {
+    warning(paste("Terminated because max iterations reached. The number of acceptances is", acceptances, "consider changing max iter or propsd"))
+  }
+  return(list(predbwsamp = bwvec, acceptancetot = acceptances, drawtot = j))
+}
+
+PredCVBFDens = function(bwvec, XT1)
+{
+  PredictedDens = function(support)
+  {
+    predpostavg = 0
+    for(j in 1:length(bwvec))
+    {
+      predpostavg = (1/length(bwvec))*HallKernel(bwvec[j], datagen = XT1, support) + predpostavg
+    }
+    return(predpostavg)
+  }
+  return(PredictedDens)
+}
+
+
+
+
+
+
+
+
+
+
