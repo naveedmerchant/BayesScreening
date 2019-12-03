@@ -128,4 +128,8 @@ ImpVarsPT1 = ParScreenVars(datasetX = gisettetrainpreds[,1:500], datasetY = gise
 #Only do on first 500
 length(ImpVarsPT1)
 
-ImpVarsCVBF1 = ParScreenVars(datasetX = gisettetrainpreds[,1:100], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = 10, trainsize1 = 2960, trainsize2 = 2960)
+ImpVarsCVBF1 = ParScreenVars(datasetX = gisettetrainpreds[,1:100], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = 10, trainsize1 = 2960, trainsize2 = 2960, seed = 200)
+
+ImpVarsCVBF2 = ParScreenVars(datasetX = gisettetrainpreds[,1:40], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = 10, trainsize1 = 2960, trainsize2 = 2960, seed = 100)
+
+#Suprisingly (or unsuprisingly) changing seed alters which vars are picked

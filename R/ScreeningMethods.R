@@ -5,6 +5,15 @@
 #' @param method A string containing the type of screening to do. Can be "SIS", "KS", "CVBF" or "PT"
 #' @param ncores A integer that corresponds to the number of cores to be used for parallelizing computation
 #' @param cutoff A real number that corresponds either to an alpha value for testing or a cutoff value on how large the Bayes factor needs to be to conclude a difference exists.
+#' @param train1ids A vector of ids that correspond to which observations to use for the training set for the first data set
+#' @param trainsize1 Size of the training set for one of the classes for CVBF
+#' @param trainsize2 Size of the training set for the other one of the classes for CVBF
+#' @param train2ids A vector of ids that correspond to which observations to use for the training set for the second data set
+#' @param seed A seed for CVBF based screening, can use this to reproduce results instead of train_ids.
+#' @param Ginv A function to compute quantiles with for Polya tree.
+#' @param c Tuning parameter for Polya tree, signifies how impactful prior should be. 
+#' @param leveltot Depth of Polya tree to construct if Polya tree based screening is type of screening chosen
+#' @param PTscale A True / false variable. Should columns be standardized before proceeding with Polya tree based screening? Default is to screen as recommended by authors.
 #'
 #' @return A list of variables that are interpreted to be important
 #' @export
@@ -62,14 +71,6 @@ ParScreenVars <- function(datasetX, datasetY, method = "SIS", ncores = 1, cutoff
     if(is.null(cutoff))
     {
       cutoff = 0
-    }
-    if(is.null(trainsize1))
-    {
-      stop("Please enter a trainsize for the dataset of class1.")
-    }
-    if(is.null(trainsize2))
-    {
-      stop("Please enter a trainsize for the dataset of class2.")
     }
     cl <- makeCluster(ncores) 
     registerDoParallel(cl)

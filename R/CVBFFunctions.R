@@ -147,8 +147,14 @@ laplace.kernH2c = function(y, x, hhat, c){
 #' @examples
 CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NULL, train1_ids = NULL, train2_ids = NULL)
 {
-  #Probably add training_ids and validation_ids later?
-  
+  if(is.null(trainsize1))
+  {
+    stop("Please enter a trainsize for the dataset of class1.")
+  }
+  if(is.null(trainsize2))
+  {
+    stop("Please enter a trainsize for the dataset of class2.")
+  }
   if(!is.null(seed))
   {
     set.seed(seed)
