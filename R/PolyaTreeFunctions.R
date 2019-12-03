@@ -26,15 +26,16 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = NULL, leveltot =
       c = 1
     }
   }
+  n = max(length(datasetX), length(datasetY))
   if(is.null(leveltot))
   {
-    ceiling(leveltot = log2(n))
+    leveltot = ceiling(log2(n))
   }
   else{
     if(leveltot < 1)
     {
       warning("leveltot must be some positive integer that represents depth of tree, proceeding at default choice for leveltot.")
-      c = 1
+      leveltot = ceiling(leveltot = log2(n))
     }
     leveltot = ceiling(leveltot) #Forces leveltot to be an integer
   }

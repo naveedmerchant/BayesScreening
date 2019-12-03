@@ -1,12 +1,18 @@
 Package: BSCRN
 Type: Package
-Title: What the package does (short line)
+Title: Classical and Bayesian Screening for Binary Classification
 Version: 1.0
 Date: 2019-11-14
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Author: person(given = "Naveed",
+           family = "Merchant",
+           role = c("aut", "cre"),
+           email = "nmerchant@stat.tamu.edu")
+Maintainer: person(given = "Naveed",
+           family = "Merchant",
+           role = c("aut", "cre"),
+           email = "nmerchant@stat.tamu.edu")
+Description: This package is intended to be used for screening important variables in the binary classification setting. This should be useful for data sets with very large amounts of predictors. Also provides implementation of non parametric Bayesian tests for equality of distributions, and methods to draw from their predictive posterior.
+License: GPL-2
 Imports: Rcpp (>= 1.0.2) 
 Depends: stats, rootSolve, parallel, foreach, doParallel
 LinkingTo: Rcpp, RcppArmadillo
@@ -15,3 +21,4 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+LazyData: true
