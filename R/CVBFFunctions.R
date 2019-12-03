@@ -1,4 +1,4 @@
-#' Title
+#' Evaluate the log prior on one of the data sets
 #'
 #' @param h A value to evaluate the prior on
 #' @param hhat Tuning parameter for the prior
@@ -15,7 +15,7 @@ logpriorused <- function(h,hhat)
 }
 
 
-#' Title
+#' Evaluate a log likelihood using the Hall Kernel
 #'
 #' @param h A bandwidth or vector of bandwidths tot ry out
 #' @param y A validation set to evaluate the KDE on
@@ -61,7 +61,7 @@ KHall=function(x){
 
 
 
-#' Title
+#' Compute integrand of the Marginal likelihood for the CVBF
 #'
 #' @param h Bandwidth parameter, this is what the integral is with respect to.
 #' @param y Validation set
@@ -86,7 +86,7 @@ integrand.Hall=function(h,y,x,cons,hhat){
 
 
 
-#' Title
+#' Compute log of the integrand of the Marginal likelihood for CVBF
 #'
 #' @param h Bandwidth parameter, this is the variable that is being integrated over
 #' @param y Validation set to evaluate the likelihood over
@@ -108,7 +108,7 @@ logintegrand.Hall=function(h, y, x, hhat){
 }
 
 
-#' Title
+#' Compute Marginal Likelihoods for CVBF
 #'
 #' @param y Validation Set
 #' @param x Training set
@@ -131,19 +131,21 @@ laplace.kernH2c = function(y, x, hhat, c){
 }
 
 
-#' Title
+#' Compute a CVBF, a Bayes factor that checks if two data sets share the same distribution.
 #'
 #' @param dataset1 One dataset that we want to check if it has the same distribution as another data set
 #' @param dataset2 Another dataset that we want to check if it has the same distribution as another data set
 #' @param trainsize1 The training set size of dataset 1
 #' @param trainsize2 The training set size of dataset 2
+#' @param train1_ids Indices for the training set of dataset 1
+#' @param train2_ids Indices for the training set of dataset 2
 #' @param seed The seed used to generate training set and validation sets for both of the data sets
 #'
 #' @return A log BF that tests whether two distributions are the same via CVBF.
 #' @export
 #'
 #' @examples
-CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NULL)
+CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NULL, train1_ids = NULL, train2_ids = NULL)
 {
   #Probably add training_ids and validation_ids later?
   
@@ -151,10 +153,22 @@ CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NUL
   {
     set.seed(seed)
   }
-  train_ids = sample(1:length(dataset1), size = trainsize1)
+  if(!is.null(train1_ids))
+  {
+    train_ids = train1_ids
+  } else{
+    train_ids = sample(1:length(dataset1), size = trainsize1)
+  }
+  if(!is.null(train2_ids))
+  {
+    train_ids2 = train2_ids
+  } else{
+    train_ids2 = sample(1:length(dataset2), size = trainsize2)
+  }
+  
   XT1 = dataset1[train_ids]
   XV1 = dataset1[-train_ids]
-  train_ids2 = sample(1:length(dataset2), size = trainsize2)
+  
   YT1 = dataset2[train_ids]
   YV1 = dataset2[-train_ids]
   
@@ -169,15 +183,13 @@ CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NUL
   
   likveccombc = function(h) {sum(log(HallKernel(h,datagen2 = c(XT1,YT1), x = c(XV1,YV1))))}
   bwlikcombc = optimize(f = function(h){  likveccombc(h)}, lower = 0, upper = 10, maximum = TRUE)
-  #ExpectedKernMLcomb = bwlikcombc$objective
-  
   ExpectedKernMLcomb = laplace.kernH2c(y = c(XT1,YT1), x = c(XV1,YV1), hhat = bwlikcombc$maximum, c= bwlikcombc$objective + logpriorused(h = bwlikcombc$maximum, hhat = bwlikcombc$maximum))
   
   return(logBF = ExpectedKernML1[1] + ExpectedKernML2[1] - ExpectedKernMLcomb[1])
 }
 
 
-#' Title
+#' Compute Hall Kernel density estimate, given a training set and a set of values to evaluate on
 #'
 #' @param h Bandwidth parameter
 #' @param datagen2 Training set for Hall KDE
@@ -199,7 +211,7 @@ HallKernel = function(h,datagen2,x)
 
 
 
-#' Title
+#' Draw bandwidths from CVBF predictive posterior by Metropolis Hasting sampling
 #'
 #' @param ndraw Number of unique draws desired for the bandwidth parameter from the posterior.
 #' @param propsd A tuning parameter, corresponds to what proposal standard deviation should be for when using MH to traverse the posterior. Should be chosen with care to ensure good mixing.
@@ -265,7 +277,7 @@ PredCVBFMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, sta
 }
 
 
-#' Title
+#' Draw bandwidths from CVBF predictive posterior by independent Metropolis Hasting sampling
 #'
 #' @param ndraw Number of unique draws desired for the bandwidth parameter from the posterior.
 #' @param propsd A tuning parameter, corresponds to what proposal standard deviation should be for when using MH to traverse the posterior. Should be chosen with care to ensure good mixing. Higher acceptance rates are OK here, compared to classic MH.
@@ -330,7 +342,7 @@ PredCVBFIndepMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1
   return(list(predbwsamp = bwvec, acceptancetot = acceptances, drawtot = j))
 }
 
-#' Title
+#' Compute a Predictive Posterior function given a sequence of bandwidths from the predictive posterior
 #'
 #' @param bwvec A vector of bandwidths, can come from either of the methods that draw bandwidths from the posterior.
 #' @param XT1 The training set

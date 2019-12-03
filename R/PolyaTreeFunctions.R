@@ -15,6 +15,7 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = 1, leveltot = 9)
   #A lot of places can be sped up I think by predefining epsilon list and epsilonlist2.
   #The loops themselves also take some time, maybe we can throw the whole thing into C, but the problem is that
   #We have a jagged matrix that's essentially run with a list rn, changing that to be in C might be trickier than it sounds.
+  #But it is something I wanted to look into
   alphalist = list()
   for(m in 1:leveltot)
   {
@@ -212,6 +213,7 @@ PolyaTreePredDraws <- function(PolyaTreePriorLik, ndraw = 2000)
   epsilonlist = rep(0, times = PolyaTreePriorLik$leveltot)
   for(i in 1:ndraw)
   {
+    #This might be possible to speed up and avoid running in a for loop. None of the iterations depend on the prev one.
     for(m in 1:PolyaTreePriorLik$leveltot)
     {
       postdraw = rbinom(1, size = 1, prob = postbetalist[[m]][k] / (postbetalist[[m]][k+1]+ postbetalist[[m]][k]))

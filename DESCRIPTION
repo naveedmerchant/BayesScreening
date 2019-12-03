@@ -11,3 +11,7 @@ Imports: Rcpp (>= 1.0.2)
 Depends: stats, rootSolve
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.0.0
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
