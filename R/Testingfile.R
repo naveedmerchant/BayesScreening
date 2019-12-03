@@ -116,20 +116,25 @@ plot(seq(from = -4, to = 4, length.out = 100) , predpostsamp(seq(from = -4, to =
 # plot(seq(from = -4, to = 4, length.out = 100) , predpostsamp2(seq(from = -4, to = 4, length.out = 100)))
 
 
-head(unname(gisettetrainpreds))
+#head(unname(gisettetrainpreds))
+
+data(gisettetrainlabs)
+data(gisettetrainpreds)
 
 unname(gisettetrainpreds[1:10,1:10])
 
-ImpVarsSIS1 = ParScreenVars(datasetX = gisettetrainpreds, datasetY = gisettetrainlabs[,1], method = "SIS", ncores = 1)
 
-ImpVarsKS1 = ParScreenVars(datasetX = gisettetrainpreds, datasetY = gisettetrainlabs[,1], method = "KS", ncores = 1)
 
-ImpVarsPT1 = ParScreenVars(datasetX = gisettetrainpreds[,1:500], datasetY = gisettetrainlabs[,1], method = "PT", ncores = 10, c = 1, leveltot = 12)
-#Only do on first 500
-length(ImpVarsPT1)
-
-ImpVarsCVBF1 = ParScreenVars(datasetX = gisettetrainpreds[,1:100], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = 10, trainsize1 = 2960, trainsize2 = 2960, seed = 200)
-
-ImpVarsCVBF2 = ParScreenVars(datasetX = gisettetrainpreds[,1:40], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = 10, trainsize1 = 2960, trainsize2 = 2960, seed = 100)
-
+# ImpVarsSIS1 = ParScreenVars(datasetX = gisettetrainpreds, datasetY = gisettetrainlabs[,1], method = "SIS", ncores = 1)
+# 
+# ImpVarsKS1 = ParScreenVars(datasetX = gisettetrainpreds, datasetY = gisettetrainlabs[,1], method = "KS", ncores = 1)
+# 
+# ImpVarsPT1 = ParScreenVars(datasetX = gisettetrainpreds[,1:500], datasetY = gisettetrainlabs[,1], method = "PT", ncores = 10, c = 1, leveltot = 12)
+# #Only do on first 500
+# length(ImpVarsPT1)
+# 
+# ImpVarsCVBF1 = ParScreenVars(datasetX = gisettetrainpreds[,1:100], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = 10, trainsize1 = 2960, trainsize2 = 2960, seed = 200)
+# 
+# ImpVarsCVBF2 = ParScreenVars(datasetX = gisettetrainpreds[,1:40], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = 10, trainsize1 = 2960, trainsize2 = 2960, seed = 100)
+# 
 #Suprisingly (or unsuprisingly) changing seed alters which vars are picked

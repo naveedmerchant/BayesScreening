@@ -2,7 +2,7 @@
 % Please edit documentation in R/CVBFFunctions.R
 \name{loglike.KHall}
 \alias{loglike.KHall}
-\title{Title}
+\title{Evaluate a log likelihood using the Hall Kernel}
 \usage{
 loglike.KHall(h, y, x)
 }
@@ -17,5 +17,5 @@ loglike.KHall(h, y, x)
 -log likelihood evaluation, where the likelihood is constructed using the training data
 }
 \description{
-Title
+Evaluate a log likelihood using the Hall Kernel
 }

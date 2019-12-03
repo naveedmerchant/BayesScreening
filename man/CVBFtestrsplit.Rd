@@ -2,9 +2,17 @@
 % Please edit documentation in R/CVBFFunctions.R
 \name{CVBFtestrsplit}
 \alias{CVBFtestrsplit}
-\title{Title}
+\title{Compute a CVBF, a Bayes factor that checks if two data sets share the same distribution.}
 \usage{
-CVBFtestrsplit(dataset1, dataset2, trainsize1, trainsize2, seed = NULL)
+CVBFtestrsplit(
+  dataset1,
+  dataset2,
+  trainsize1,
+  trainsize2,
+  seed = NULL,
+  train1_ids = NULL,
+  train2_ids = NULL
+)
 }
 \arguments{
 \item{dataset1}{One dataset that we want to check if it has the same distribution as another data set}
@@ -16,10 +24,14 @@ CVBFtestrsplit(dataset1, dataset2, trainsize1, trainsize2, seed = NULL)
 \item{trainsize2}{The training set size of dataset 2}
 
 \item{seed}{The seed used to generate training set and validation sets for both of the data sets}
+
+\item{train1_ids}{Indices for the training set of dataset 1}
+
+\item{train2_ids}{Indices for the training set of dataset 2}
 }
 \value{
 A log BF that tests whether two distributions are the same via CVBF.
 }
 \description{
-Title
+Compute a CVBF, a Bayes factor that checks if two data sets share the same distribution.
 }

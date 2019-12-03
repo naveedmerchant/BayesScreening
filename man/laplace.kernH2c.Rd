@@ -2,7 +2,7 @@
 % Please edit documentation in R/CVBFFunctions.R
 \name{laplace.kernH2c}
 \alias{laplace.kernH2c}
-\title{Title}
+\title{Compute Marginal Likelihoods for CVBF}
 \usage{
 laplace.kernH2c(y, x, hhat, c)
 }
@@ -19,5 +19,5 @@ laplace.kernH2c(y, x, hhat, c)
 Evaluation of the CVBF marginal likelihood via Laplace Approximation.
 }
 \description{
-Title
+Compute Marginal Likelihoods for CVBF
 }

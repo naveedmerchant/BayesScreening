@@ -2,7 +2,7 @@
 % Please edit documentation in R/CVBFFunctions.R
 \name{HallKernel}
 \alias{HallKernel}
-\title{Title}
+\title{Compute Hall Kernel density estimate, given a training set and a set of values to evaluate on}
 \usage{
 HallKernel(h, datagen2, x)
 }
@@ -17,5 +17,5 @@ HallKernel(h, datagen2, x)
 An object of the same dimension as x that evaluates a KDE trained on datagen2 on everyone of the points in x
 }
 \description{
-Title
+Compute Hall Kernel density estimate, given a training set and a set of values to evaluate on
 }

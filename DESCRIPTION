@@ -3,11 +3,7 @@ Type: Package
 Title: Classical and Bayesian Screening for Binary Classification
 Version: 1.0
 Date: 2019-11-14
-Author: person(given = "Naveed",
-           family = "Merchant",
-           role = c("aut", "cre"),
-           email = "nmerchant@stat.tamu.edu")
-Maintainer: person(given = "Naveed",
+Authors@R: person(given = "Naveed",
            family = "Merchant",
            role = c("aut", "cre"),
            email = "nmerchant@stat.tamu.edu")

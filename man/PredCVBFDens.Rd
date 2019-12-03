@@ -2,7 +2,7 @@
 % Please edit documentation in R/CVBFFunctions.R
 \name{PredCVBFDens}
 \alias{PredCVBFDens}
-\title{Title}
+\title{Compute a Predictive Posterior function given a sequence of bandwidths from the predictive posterior}
 \usage{
 PredCVBFDens(bwvec, XT1)
 }
@@ -15,5 +15,5 @@ PredCVBFDens(bwvec, XT1)
 A function that evaluates the predictive posterior at particular values
 }
 \description{
-Title
+Compute a Predictive Posterior function given a sequence of bandwidths from the predictive posterior
 }

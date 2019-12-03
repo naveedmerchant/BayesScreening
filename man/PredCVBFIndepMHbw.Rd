@@ -2,7 +2,7 @@
 % Please edit documentation in R/CVBFFunctions.R
 \name{PredCVBFIndepMHbw}
 \alias{PredCVBFIndepMHbw}
-\title{Title}
+\title{Draw bandwidths from CVBF predictive posterior by independent Metropolis Hasting sampling}
 \usage{
 PredCVBFIndepMHbw(
   ndraw = 100,
@@ -30,5 +30,5 @@ PredCVBFIndepMHbw(
 A list of bandwidths that come from the posterior distribution. This will be larger than ndraw, as some draws will be repeats.
 }
 \description{
-Title
+Draw bandwidths from CVBF predictive posterior by independent Metropolis Hasting sampling
 }

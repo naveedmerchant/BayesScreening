@@ -4,7 +4,7 @@
 \alias{PolyaTreetest}
 \title{Polya Tree test}
 \usage{
-PolyaTreetest(datasetX, datasetY, Ginv = qnorm, c = 1, leveltot = 9)
+PolyaTreetest(datasetX, datasetY, Ginv = qnorm, c = NULL, leveltot = NULL)
 }
 \arguments{
 \item{datasetX}{A set of data (or in the case of screening a predictor corresponding to one class), one of the data sets we want to check if its distribution is the same as dataset Y's.}

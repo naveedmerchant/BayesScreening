@@ -2,7 +2,7 @@
 % Please edit documentation in R/CVBFFunctions.R
 \name{integrand.Hall}
 \alias{integrand.Hall}
-\title{Title}
+\title{Compute integrand of the Marginal likelihood for the CVBF}
 \usage{
 integrand.Hall(h, y, x, cons, hhat)
 }
@@ -21,5 +21,5 @@ integrand.Hall(h, y, x, cons, hhat)
 
 }
 \description{
-Title
+Compute integrand of the Marginal likelihood for the CVBF
 }

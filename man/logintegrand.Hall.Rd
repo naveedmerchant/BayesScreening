@@ -2,7 +2,7 @@
 % Please edit documentation in R/CVBFFunctions.R
 \name{logintegrand.Hall}
 \alias{logintegrand.Hall}
-\title{Title}
+\title{Compute log of the integrand of the Marginal likelihood for CVBF}
 \usage{
 logintegrand.Hall(h, y, x, hhat)
 }
@@ -19,5 +19,5 @@ logintegrand.Hall(h, y, x, hhat)
 Evaluation of the integrand at a particular log likelihood value.
 }
 \description{
-Title
+Compute log of the integrand of the Marginal likelihood for CVBF
 }
