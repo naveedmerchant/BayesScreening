@@ -10,12 +10,34 @@
 #' @export
 #'
 #' @examples
-PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = 1, leveltot = 9)  
+PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = NULL, leveltot = NULL)  
 {
   #A lot of places can be sped up I think by predefining epsilon list and epsilonlist2.
   #The loops themselves also take some time, maybe we can throw the whole thing into C, but the problem is that
   #We have a jagged matrix that's essentially run with a list rn, changing that to be in C might be trickier than it sounds.
   #But it is something I wanted to look into
+  if(is.null(c))
+  {
+    c = 1
+  } else{
+    if(c < 0)
+    {
+      warning("c must be some positive number, proceeding as if c = 1 was inputted")
+      c = 1
+    }
+  }
+  if(is.null(leveltot))
+  {
+    ceiling(leveltot = log2(n))
+  }
+  else{
+    if(leveltot < 1)
+    {
+      warning("leveltot must be some positive integer that represents depth of tree, proceeding at default choice for leveltot.")
+      c = 1
+    }
+    leveltot = ceiling(leveltot) #Forces leveltot to be an integer
+  }
   alphalist = list()
   for(m in 1:leveltot)
   {

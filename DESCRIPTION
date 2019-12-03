@@ -8,7 +8,7 @@ Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Imports: Rcpp (>= 1.0.2) 
-Depends: stats, rootSolve
+Depends: stats, rootSolve, parallel, foreach, doParallel
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.0.0
 Suggests: 

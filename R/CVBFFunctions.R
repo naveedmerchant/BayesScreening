@@ -169,8 +169,8 @@ CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NUL
   XT1 = dataset1[train_ids]
   XV1 = dataset1[-train_ids]
   
-  YT1 = dataset2[train_ids]
-  YV1 = dataset2[-train_ids]
+  YT1 = dataset2[train_ids2]
+  YV1 = dataset2[-train_ids2]
   
   
   likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
@@ -185,7 +185,7 @@ CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NUL
   bwlikcombc = optimize(f = function(h){  likveccombc(h)}, lower = 0, upper = 10, maximum = TRUE)
   ExpectedKernMLcomb = laplace.kernH2c(y = c(XT1,YT1), x = c(XV1,YV1), hhat = bwlikcombc$maximum, c= bwlikcombc$objective + logpriorused(h = bwlikcombc$maximum, hhat = bwlikcombc$maximum))
   
-  return(logBF = ExpectedKernML1[1] + ExpectedKernML2[1] - ExpectedKernMLcomb[1])
+  return(list(logBF = ExpectedKernML1[1] + ExpectedKernML2[1] - ExpectedKernMLcomb[1], train1_ids = train_ids, train2_ids = train_ids2))
 }
 
 
