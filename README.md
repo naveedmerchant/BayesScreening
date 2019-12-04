@@ -2,12 +2,7 @@
 Naveed Merchant
   - [Installation](#installation)
   - [Usage](#usage)
-      - [1. Parallel Screening of data for binary classification]
-         (#Parallel Screening of data for binary classification)
-      - [2. Testing two data sets to see if they share the same distribution
-](#Testing two data sets to see if they share the same distribution)
-      - [3. Generating samples from the predictive posterior of the two previous tests](#generate-data)
-
+  - [Examples](#examples)
 ## Introduction
 
 BayesScreening is an R package for screening important variables for data sets with large amounts of predictors. This screening is intended for binary classification. It does this by applying Bayesian tests that check if two or more samples have the same distribution. There are also other screening methods to compare these methods to in this package. This package also supports running this screening in parallel.
