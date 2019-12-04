@@ -1,5 +1,14 @@
 # BayesScreening Package
-
+Naveed Merchant
+  -  [TransGPS: Toward a better analysis of GPS
+    data](#transgps-toward-a-better-analysis-of-gps-data)
+  - [Installation](#installation)
+  - [Usage](#usage)
+      - [1. Parallel Screening of data for binary classification
+         (#Parallel-Screening-of-data-for-binary-classification)
+      - [2. Testing two data sets to see if they share the same distribution
+](#Testing-two-data-sets-to-see-if-they-share-the-same-distribution)
+      - [3. Generating samples from the predictive posterior of the two previous tests](#generate-data)
 
 ## Introduction
 
@@ -24,7 +33,7 @@ library(BSCRN)
 
 ## Examples
 
-### 3\. Parallel Screening of data for binary classification
+### 1\. Parallel Screening of data for binary classification
 
 For data sets with a large number of predictors, its rare that all predictors are truly useful. This function takes
 a data set that contains a column corresponding to classes, and a matrix containing predictors. It returns a 
