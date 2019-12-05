@@ -103,7 +103,7 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = NULL, leveltot =
       
     }
   }
-  return(sum(bj))
+  return(list(logBF = -sum(bj), logBFcont =  -bj))
   
 }
 
@@ -118,8 +118,12 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = NULL, leveltot =
 #' @export
 #'
 #' @examples
-PolyaTreePriorLikCons <- function(datasetX, Ginv = qnorm, c = 1, leveltot = 9)  
+PolyaTreePriorLikCons <- function(datasetX, Ginv = qnorm, c = 1, leveltot = NULL)  
 {
+  if(is.null(leveltot))
+  {
+    leveltot = ceiling(log2(length(datasetX)))
+  }
   alphalist = list()
   for(m in 1:leveltot)
   {
@@ -192,7 +196,7 @@ PolyaTreeBFcons <- function(PolyaTreePriorLik1, PolyaTreePriorLik2)
 
     }
   }
-  return(list(logBF = sum(bj), logBFcont = bj))
+  return(list(logBF = -sum(bj), logBFcont = -bj))
 }
  
 

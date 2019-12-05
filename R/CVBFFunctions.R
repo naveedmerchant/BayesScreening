@@ -48,7 +48,8 @@ loglike.KHall=function(h, y, x){
 #'
 #' @param x The parameter to evaluate the Hall Kernel density on 
 #'
-#' @return Evaluation of K(X), where $K \propto exp^{-.5log(1 + abs(x))^2}$ and is a valid PDF
+#' @return Evaluation of K(X), where K is a heavy tailed kernel. For more information on K(x), see
+#'  K_0 on https://www.jstor.org/stable/2241687?casa_token=MYvQinlSlloAAAAA:QQdoTOxh5bfOv7RfessNXbkL37CRM0_TC1UipmC2kVqOB9oVVFaPh_sqzejtMKOpLUCOdSX-LRhpjcb1hk9ggrG8GDePNfk3k-0XsLzbXa3qbGP-Pbk&seq=7#metadata_info_tab_contents
 #' @export
 #'
 #' @examples
@@ -296,7 +297,7 @@ PredCVBFMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, sta
 #' @export
 #'
 #' @examples
-PredCVBFIndepMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, startingbw = NULL)
+PredCVBFIndepMHbw = function(ndraw = 100, propsd = NULL, maxIter = 10000, XT1, XV1, startingbw = NULL)
 {
   bwvec = c()
   if(is.null(startingbw))
@@ -307,6 +308,10 @@ PredCVBFIndepMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1
   }
   else{
     bwvec[1] = startingbw
+  }
+  if(is.null(propsd))
+  {
+    propsd = startingbw * length(XT1) ^ (-1 / 10)
   }
   beta = startingbw
   postcurr = sum(log(HallKernel(bwvec[1], datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwvec[1]) - (beta^2 / bwvec[1]^2)
@@ -345,7 +350,7 @@ PredCVBFIndepMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1
   {
     warning(paste("Terminated because max iterations reached. The number of acceptances is", acceptances, "consider changing max iter or propsd"))
   }
-  return(list(predbwsamp = bwvec, acceptancetot = acceptances, drawtot = j))
+  return(list(predbwsamp = bwvec, acceptancetot = acceptances, drawtot = j, propmean = startingbw, propsd = propsd))
 }
 
 #' Compute a Predictive Posterior function given a sequence of bandwidths from the predictive posterior

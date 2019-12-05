@@ -13,8 +13,227 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
-HellO
+#Introduction
 
-```{r setup}
+BayesScreening is an R package for screening important variables for data sets with large amounts of predictors. This screening is intended for binary classification. It does this by applying Bayesian tests that check if two or more samples have the same distribution. There are also other screening methods to compare these methods to in this package. This package also supports running this screening in parallel.
+
+This vignette tries to give a gentle guide on how to use the package, as well as some ideas as to what some of the parameters that can be specified mean, and how to alter them to the user's advantage.
+
+We'll first start off by looking at the Bayesian tests that check to see if two samples share a distribution.
+
+The first test is Polya Tree.
+
+##Polya Tree
+
+The Polya tree is a non-parametric Bayesian procedure that tries to examine what a distribution looks like without specifying a distribution directly on it. It hueristically does this by creating many histograms. Some more fine then others, and then weightedly averaging them. The more fine the histogram, the less the weights are. 
+
+A review of Polya Tree can be found in Hanson's Paper on Inference on Mixture of Polya Tree's (https://www.jstor.org/stable/pdf/27639772.pdf?refreqid=excelsior%3A892b0d91d07a65744a28e512057ba015). 
+
+We can generate the parameters needed for a Polya Tree prior and likelihood by running a data set under one of the Polya Tree functions
+
+```{r setup and Polya tree}
 library(BSCRN)
+set.seed(500)
+datasetsample1 = rnorm(600)
+PTsample1 = PolyaTreePriorLikCons(datasetX = datasetsample1)
+names(PTsample1)
+
 ```
+
+A list made by PolyaTreePriorLikCons contains 5 arguments. The alphalist is a (large) list of parameters that correspond to the Polya Tree prior. Alternatively, it contains arguments that weightedly average the histogram. There are leveltot lists in this list, and the jth list contains 2^j elements. By default, all of the elements in the list are set to be equal to c*j^2, where c is a parameter that can be specified when running the Polya tree function. This is a procedure we've done at recommendation as a default by another paper, however, it is not the only way this test can be run. 
+
+If desired (although not recommended unless you want to experiment), alphalist "can" be altered, and we honestly believe that altering it to suit the data set can probably result in better priors, but it should be done with care. It is for this reason, we've left alphalist as a list of lists, rather than as a vector.
+
+Leveltot corresponds to how fine of histograms we need to compute. Letting leveltot be large is a bad idea. Computation cost scales exponentially with leveltot, however, it is recommended to choose this parameter to be equal to $log_2(n)$, where $n$ is the total number of observations in the data set in Chen and Hanson's paper (https://ideas.repec.org/a/eee/csdana/v71y2014icp335-346.html). Choosing a larger number may be appropriate if the data set has unusual features, but this is a research topic on its own. As a result, we've left that parameter to be the default, and allow another parameter to be specified. 
+
+The final argument present is Ginv. Choosing the bins of the histogram to construct is not a trivial task. In general choosing bins is typically done by looking at the quantiles of some distribution. Holmes et al. (https://projecteuclid.org/euclid.ba/1422884976), have found centering and scaling the data before proceeding, and using the quantiles of a standard normal distribution to create quantiles to work well in simulations.  However, they also encourage changing the distribution that quantiles are made on to fit the data set and situation appropriately. We adopt their approach and set the default Ginv to be the quantile function of a normal distribution.
+
+The function does NOT center and scale by default, we recommend centering and scaling data sets before proceeding if no defaults are provided. However, this issue can also be side stepped by taking Ginv to be the quantile function of a normal distribution with the mean equal to the mean of the data set and the standard deviation equal to the standard deviation of the data set.
+
+We've now described the Polya tree in some depth, lets see how samples drawn from the Polya tree are:
+
+```{r drawing samples from the Polya tree, cache=TRUE}
+sampledraws = PolyaTreePredDraws(PTsample1, ndraw = 500)
+plot(density(sampledraws), main = "Comparison of simple predictive posteriors", xlab = "Red line is true density, black line is approximate Polya Tree predictive posterior")
+lines(density(datasetsample1), col = "blue")
+curve(dnorm(x), add=TRUE, col = "red")
+```
+
+The black line is the predictive posterior of the Polya tree, which was approximated by drawing 500 samples from the Polya tree's predictive posterior. The larger the leveltot, the larger the amount of time required to generate a sample from the predictive posterior. It can take some time to actually generate samples from the predictive posterior, so proceed with care. 
+
+The blue line is the density estimate formed from a Gaussian KDE of all the data. The predictive Polya tree is not too bad of an estimate of the true distribution. While this is a hunch, our belief is that the better the predictive posterior is at estimating the true density, the better the test for equality of distributions will be. We now illustrate the other method that can be used, CVBFs.
+
+##CVBF
+
+A natural estimate of the underlying distribution is a kernel density estimate. It is tricky to turn this immediately in to a Bayes factor, however. The likelihood is not immediately obvious. A simple suggestion to do this, is to construct a training set using a fraction of the data set. The data in the training set will be used to construct a Kernel density estimate, where h is an unknown parameter. This is, in the strictest sense, similar to a likelihood. We place a prior on the bandwidth, and use the portion of the data set not used for training the kernel density estimate as a validation set. The validation data can be interpreted to cause the Bayes factor to increase in magnitude with size. The prior on the bandwidth that is recommended to be chosen in the end, is a prior with a mode on the MLE. 
+
+It turns out doing something like this is a bandwidth selection method with similarities to leave-one-out Cross validation for selecting bandwidth. We will not dwell on the technical part of this, but instead leave a manuscript that further elaborates on this procedure in the github (link goes here).
+
+To be fair to Polya tree, we also first illustrate the predictive posterior of CVBF. To draw samples from the predictive posterior, bandwidth samples should be drawn from the posterior, and the plugged into the KDE generated by the training set. To draw bandwidth samples from the posterior, we request the user tell us what the training set is and what the validation set is. Unlike Polya tree, the prior used is not conjugate, which makes drawing samples from the posterior difficult. There are methods to sample from the posterior when the posterior form isn't well known, but they require specification of tuning parameters.
+
+It's been noticed that the posterior for the bandwidth seems to appear almost normal. As a result, using an independent metropolis sampler with a normal proposal is one strategy to draw from the posterior, and it seems to be effective, although more research in general is required in that field. We can provide a good default for what the mean should be, and a default is provided for the standard deviation. While the default proposal mean will mostly be nice, we imagine the default proposal standard deviation to change depending on the density that is being dealt with. The user may have to experiment with what proposal standard deviation works well unfortunately.
+
+A more classic method to draw bandwidths is to use the Metropolis algorithm. However, doing this also requires setting some tuning parameters. While we can provide a good default for the starting mean, we again run into problems with giving a good default standard deviation for the proposal distribution. A poorly chosen standard deviation will result in slow mixing times in this case, but will return decent samples.
+
+The ndraw corresponds to the number of unique draws that would be liked from drawing from the posterior. The maxIter forces the chain to stop at the maxIter'th iteration. The two should be set and used carefully to avoid running chains that take a long time to run.
+
+A good independence Metropolis sampler tends to have much higher acceptance rates than a well chosen Metropolis algorithm sampler, but is more dependent on the tuning parameters. Whatever the case, we now illustrate the methods to draw from the posterior bandwidth distribution.
+
+```{r Drawing bandwidth samples from CVBF}
+trainingindices1 = sample(1:600, size = 300)
+XT1 = datasetsample1[trainingindices1]
+XV1 = datasetsample1[-trainingindices1]
+predbwvec1 = PredCVBFIndepMHbw(ndraw = 500, maxIter = 5000, XT1 = XT1, XV1 = XV1)
+
+predbwvec2 = PredCVBFMHbw(ndraw = 500, propsd = 0.06, maxIter = 4000, XT1 = XT1, XV1 = XV1)
+ 
+plot(predbwvec1$predbwsamp)
+ 
+plot(predbwvec2$predbwsamp)
+
+#Independence Metropolis acceptance rate
+
+predbwvec1$acceptancetot / predbwvec1$drawtot
+
+#Metropolis algorithm acceptance rate
+
+predbwvec2$acceptancetot / predbwvec2$drawtot
+```
+
+One way to examine the quality of the posterior draws is to see plots of the chains. The chains don't seem sticky for the Independent Metropolis algorithm, but it looks like bandwidth draws are exploring a narrower area than the area explored by the Metropolis algorithm
+
+The Metropolis algorithm seems to mix well, and looks like it explores a decent bit of the chain.
+
+An alternative to examining how well the posterior draws are is to look at the acceptance rates.
+
+The ideal Metropolis algorithm acceptance rate is around .24 under some conditions (https://arxiv.org/pdf/1704.04629.pdf). 
+
+Its harder to say what the optimal acceptance rate is for the independence sampler. Large amounts of acceptances are good, but you also want the chain to travel a somewhat wide area. As long as some rejections occur, we can say that the chain is attempting to explore the area, but failing in some places. So some rejections are good, but it should still be a significantly smaller percentage than the number of rejections from the Metropolis algorithm.
+
+The ideal case, is to obtain high acceptance rates with the independent Metropolis sampler, but still maintian the ability to explore areas of the posterior that are low in probability. The Metropolis algorithm alone will probably explore a good area, but may do so slowly. We now examine plots of the predictive posterior now, using bandwidth vectors from both algorithms.
+
+To use the function that draws form the predictive posterior of the CVBF, we must give a vector of bandwidths from the posterior, and the training data set. The function returns another function, which evaluates an approximation of the predictive posterior at a given point
+
+```{r Drawing from the Predictive posterior of CVBF}
+predpostsamp = PredCVBFDens(predbwvec1$predbwsamp, XT1 = XT1)
+
+predpostsamp2 = PredCVBFDens(predbwvec2$predbwsamp, XT1 = XT1)
+
+plot(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200) , predpostsamp(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200)), main = "Comparison of simple predictive posteriors", xlab = "Red line is true density, black dots is approximate CVBF predictive posterior")
+lines(density(datasetsample1), col = "blue")
+curve(dnorm(x), add=TRUE, col = "red")
+
+
+
+plot(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200) , predpostsamp2(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200)), main = "Comparison of simple predictive posteriors", xlab = "Red line is true density, black dots is approximate CVBF predictive posterior")
+lines(density(datasetsample1), col = "blue")
+curve(dnorm(x), add=TRUE, col = "red")
+
+
+```
+
+The blue line in both of these plots is a gaussian Kernel density estimate of the true distribution. Both of these distributions seem somewhat capable of estimating the true density.
+
+It can be argued that the predictive posterior of the Polya tree is better in this case than the predictive posterior of the CVBF, and we agree that this seems to be the case for this toy example. There might be other cases, though, where the predictive posterior of the CVBF is better matched to the data than the Polya tree's predictive posterior. The distribution used to construct the quantiles for Polya tree is by default a normal distribution, while the kernel used to construct the KDEs for CVBF is very heavy tailed. We imagine this to be the reason why Polya tree demonstrates a superior predictive posterior.
+
+Whatever the case, we now demonstrate how these two tests do in testing.
+
+#Testing for equality of distributions with BSCRN
+
+We first demonstrate how our package does the two sample test by using the Polya tree.
+
+##Testing using Polya tree
+
+The Polya tree test for checking if two samples share the same distribution was first proposed (to our knowledge), by Holmes et al. (https://projecteuclid.org/euclid.ba/1422884976).
+
+To do testing using the Polya tree, you can either call the Polya tree object that was created using PolyaTreePriorLikCons. Alternatively, another function can be called that runs the test fully. We show both methods below.
+
+
+```{r Applying Polya Tree bayesian procedures for testing}
+#Method done by constructing two Polya tree objects, and testing the two for differences
+datasetsample2 = rnorm(600)
+PTsample2 = PolyaTreePriorLikCons(datasetX = datasetsample2)
+logBF = PolyaTreeBFcons(PTsample1, PTsample2)
+
+#Method directly computes the log BF for two data sets. The same values are available
+
+altsamelogBF = PolyaTreetest(datasetX = datasetsample1, datasetY = datasetsample2)
+
+logBF
+altsamelogBF
+
+datasetsample3 = rnorm(600, mean = 2, sd = 1)
+PTsample3 = PolyaTreePriorLikCons(datasetX = datasetsample3)
+
+logBF2 = PolyaTreeBFcons(PTsample1, PTsample3)
+altsamelogBF2 = PolyaTreetest(datasetX = datasetsample3, datasetY = datasetsample1)
+logBF2
+altsamelogBF2
+
+```
+
+The Polya tree test only really makes sense to perform the levels of the two Polya trees are the same, and if the priors used on both data sets are similar. If two Polya trees are constructed such that, the c's are different or the leveltots are different, then the test is a bit different. The test itself cannot be run if the leveltots are different, the Bayes factor simply isn't defined for the lower levels. It can be run if the c's are different the test can be run, but the prior influence is different for both Polya trees, which may affect consistency. 
+
+This is only a problem if the Polya tree test is run through two previously defined Polya trees. This is not a problem that will be run in to if the test itself is called directly, as the leveltot chosen is the same for both, as is the c tuning parameter. The leveltot, c, and Ginv, can be set as desired by using arguments in PolyaTreetest.
+
+The value returned from the functions returns the logBF of the full test, which can be interpreted as follows. If the log BF is positive, there's evidence that the distribution of the two tests are different. If the log BF is negative, there's evidence that the distribution of the two tests are the same. If the log BF is close to 0, then the test is inconclusive.  The function also returns a value called logBFcont, which gives the amount the log BF was contributed to by in different levels of the tree. Holmes et al. suggest that the contribution of the log Bayes factor should diminish as you go deeper in to the tree, and new levels should stop being formed when the contribution of the log Bayes factor seem to become tiny. Hanson and Chen suggested that a good default for this to occur is $log_2(n)$, where $n$ is the number of samples in the data set. This can be monitored and adjusted appropriately. 
+
+It should also be mentioned that the Ginv should be the same for both Polya trees. However, we don't check for this currently. Again, this is not something that can potentially be a problem if PolyaTreetest is called, but is something that can occur if PolyaTreeBFcons is called haphazardly.
+
+We now show the same test with the CVBF instead.
+
+```{r Applying CVBF bayesian procedures for testing}
+
+CVBF1 = CVBFtestrsplit(dataset1 = datasetsample1, dataset2 = datasetsample2, trainsize1 = 300, trainsize2 = 300, train1_ids = trainingindices1, train2_ids = trainingindices1)
+
+CVBF2 = CVBFtestrsplit(dataset1 = datasetsample1, dataset2 = datasetsample3, trainsize1 = 300, trainsize2 = 300, train1_ids = trainingindices1, train2_ids = trainingindices1)
+
+CVBF1$logBF
+
+CVBF2$logBF
+
+```
+
+CVBFtestrsplit returns the training_ids as well as a log Bayes factor. The log Bayes factor will change with different training and validation splits. Taking an average of them can result in a more stable log Bayes factor.
+
+We now present how these methods are used for screening for important variables. To do this currently, we look at the GISETTE data set. This data set was presented in NIPS, and contains features that corespond to pixel measurements of an image, and features that are meaningless (probes). The original data set itself was obtained from  https://archive.ics.uci.edu/ml/datasets/Gisette . For ease, it can be included by using the data command. For now, we'll show how to use our tests to screen for important variables.
+```{r Applying These tests as a screening method for classification, cache=TRUE}
+data(gisettetrainlabs)
+data(gisettetrainpreds)
+
+#There are also validation labels and validation predictors
+#Can be included via
+#data(gisettevalidlabs)
+#data(gisettevalidpreds)
+
+dim(gisettetrainpreds)
+head(gisettetrainlabs)
+length(gisettetrainlabs)
+nworkers = detectCores()
+
+ImpVarsSIS1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "SIS", ncores = nworkers / 2)
+
+length(ImpVarsSIS1$varspicked)
+
+ImpVarsKS1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "KS", ncores = nworkers / 2)
+
+length(ImpVarsKS1$varspicked)
+
+ImpVarsPT1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "PT", ncores = nworkers / 2, c = 1, leveltot = 12)
+ #Only do on first 500
+length(ImpVarsPT1$varspicked)
+hist(ImpVarsPT1$logBFlist)
+
+#
+ImpVarsCVBF1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = nworkers / 2, trainsize1 = 2960, trainsize2 = 2960, seed = 200)
+length(ImpVarsCVBF1$varspicked)
+hist(ImpVarsCVBF1$logBFlist)
+ 
+
+```
+To use, put the matrix with all the predictors in to datasetX, and put a vector with an indicator corresponding to the classes in to datasetY. 
+
+It appears that the logBFs for Polya tree are all close to 0, which implies that the test believes that all variables are distributed similarly, however, this doesn't seem to be the case when examining the results of KS screening and CVBF based screening.
+
+The cutoff used for selecting variables can be altered. The default rule is to use the variable if the log BF is bigger than 0, or if the p-value is less than .005.
+

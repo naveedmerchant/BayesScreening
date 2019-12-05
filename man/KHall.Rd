@@ -10,7 +10,8 @@ KHall(x)
 \item{x}{The parameter to evaluate the Hall Kernel density on}
 }
 \value{
-Evaluation of K(X), where $K \propto exp^{-.5log(1 + abs(x))^2}$ and is a valid PDF
+Evaluation of K(X), where K is a heavy tailed kernel. For more information on K(x), see
+ K_0 on https://www.jstor.org/stable/2241687?casa_token=MYvQinlSlloAAAAA:QQdoTOxh5bfOv7RfessNXbkL37CRM0_TC1UipmC2kVqOB9oVVFaPh_sqzejtMKOpLUCOdSX-LRhpjcb1hk9ggrG8GDePNfk3k-0XsLzbXa3qbGP-Pbk&seq=7#metadata_info_tab_contents
 }
 \description{
 Title Hall Kernel

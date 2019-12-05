@@ -4,7 +4,7 @@
 \alias{PolyaTreePriorLikCons}
 \title{Title}
 \usage{
-PolyaTreePriorLikCons(datasetX, Ginv = qnorm, c = 1, leveltot = 9)
+PolyaTreePriorLikCons(datasetX, Ginv = qnorm, c = 1, leveltot = NULL)
 }
 \arguments{
 \item{datasetX}{A dataset to compute the Polya Tree prior on}

@@ -52,7 +52,7 @@ ParScreenVars <- function(datasetX, datasetY, method = "SIS", ncores = 1, cutoff
       tempMatrix #Equivalent to pvaluelist = c(pvaluelist, tempMatrix)
     }
     stopCluster(cl)
-    ImportantVars = which(pvaluelist < cutoff)
+    ImportantVars = list(pvaluelist = pvaluelist , varspicked = which(pvaluelist < cutoff))
   } else if(method == "KS"){
     if(is.null(cutoff))
     {
@@ -66,7 +66,7 @@ ParScreenVars <- function(datasetX, datasetY, method = "SIS", ncores = 1, cutoff
       tempMatrix #Equivalent to pvaluelist = c(pvaluelist, tempMatrix)
     }
     stopCluster(cl)
-    ImportantVars = which(pvaluelist < cutoff)
+    ImportantVars = list(pvaluelist = pvaluelist , varspicked = which(pvaluelist < cutoff))
   } else if(method == "CVBF"){
     if(is.null(cutoff))
     {
@@ -80,7 +80,7 @@ ParScreenVars <- function(datasetX, datasetY, method = "SIS", ncores = 1, cutoff
       tempMatrix #Equivalent to logBFlist = c(logBFlist, tempMatrix)
     }
     stopCluster(cl)
-    ImportantVars = which(logBFlist > cutoff)
+    ImportantVars = list(logBFlist = logBFlist, varspicked = which(logBFlist > cutoff))
     
   } else if(method == "PT"){
     if(is.null(cutoff))
@@ -99,12 +99,13 @@ ParScreenVars <- function(datasetX, datasetY, method = "SIS", ncores = 1, cutoff
     cl <- makeCluster(ncores) 
     registerDoParallel(cl)
     logBFlist <- foreach(j=1:p, .combine=c, .export = c("PolyaTreetest")) %dopar% {
-      tempMatrix = PolyaTreetest(datasetX[Class0ind, j], datasetX[-Class0ind, j], Ginv = Ginv, c = c, leveltot = leveltot) 
+      tempMatrix = PolyaTreetest(datasetX[Class0ind, j], datasetX[-Class0ind, j], Ginv = Ginv, c = c, leveltot = leveltot)$logBF 
       
       tempMatrix #Equivalent to logBFlist = c(logBFlist, tempMatrix)
     }
     stopCluster(cl)
-    ImportantVars = which(logBFlist > cutoff)
+    ImportantVars = list(logBFlist = logBFlist, varspicked = which(logBFlist > cutoff))
+    #ImportantVars = which(logBFlist > cutoff)
   }
   else{
     stop("Method entered does not match with screening methods supported. Please recheck spelling or pick an option from 'SIS', 'KS', 'CVBF', or 'PT'")

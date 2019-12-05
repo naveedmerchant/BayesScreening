@@ -6,7 +6,7 @@
 \usage{
 PredCVBFIndepMHbw(
   ndraw = 100,
-  propsd = 0.1,
+  propsd = NULL,
   maxIter = 10000,
   XT1,
   XV1,
