@@ -52,7 +52,7 @@ The function does NOT center and scale by default, we recommend centering and sc
 
 We've now described the Polya tree in some depth, lets see how samples drawn from the Polya tree are:
 
-```{r drawing samples from the Polya tree, cache=TRUE}
+```{r drawing samples from the Polya tree, cache=F}
 sampledraws = PolyaTreePredDraws(PTsample1, ndraw = 500)
 plot(density(sampledraws), main = "Comparison of simple predictive posteriors", xlab = "Red line is true density, black line is approximate Polya Tree predictive posterior")
 lines(density(datasetsample1), col = "blue")
@@ -119,13 +119,13 @@ predpostsamp = PredCVBFDens(predbwvec1$predbwsamp, XT1 = XT1)
 
 predpostsamp2 = PredCVBFDens(predbwvec2$predbwsamp, XT1 = XT1)
 
-plot(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200) , predpostsamp(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200)), main = "Comparison of simple predictive posteriors", xlab = "Red line is true density, black dots is approximate CVBF predictive posterior")
+plot(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200) , predpostsamp(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200)), main = "Comparison of simple predictive posteriors", xlab = "Red line is true density, black dots is approximate CVBF predictive posterior", ylab = "density")
 lines(density(datasetsample1), col = "blue")
 curve(dnorm(x), add=TRUE, col = "red")
 
 
 
-plot(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200) , predpostsamp2(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200)), main = "Comparison of simple predictive posteriors", xlab = "Red line is true density, black dots is approximate CVBF predictive posterior")
+plot(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200) , predpostsamp2(seq(from = min(datasetsample1), to = max(datasetsample1), length.out = 200)), main = "Comparison of simple predictive posteriors", xlab = "Red line is true density, black dots is approximate CVBF predictive posterior", ylab = "density")
 lines(density(datasetsample1), col = "blue")
 curve(dnorm(x), add=TRUE, col = "red")
 
@@ -197,7 +197,7 @@ CVBF2$logBF
 CVBFtestrsplit returns the training_ids as well as a log Bayes factor. The log Bayes factor will change with different training and validation splits. Taking an average of them can result in a more stable log Bayes factor.
 
 We now present how these methods are used for screening for important variables. To do this currently, we look at the GISETTE data set. This data set was presented in NIPS, and contains features that corespond to pixel measurements of an image, and features that are meaningless (probes). The original data set itself was obtained from  https://archive.ics.uci.edu/ml/datasets/Gisette . For ease, it can be included by using the data command. For now, we'll show how to use our tests to screen for important variables.
-```{r Applying These tests as a screening method for classification, cache=TRUE}
+```{r Applying These tests as a screening method for classification}
 data(gisettetrainlabs)
 data(gisettetrainpreds)
 
@@ -208,7 +208,7 @@ data(gisettetrainpreds)
 
 dim(gisettetrainpreds)
 head(gisettetrainlabs)
-length(gisettetrainlabs)
+dim(gisettetrainlabs)
 nworkers = detectCores()
 
 ImpVarsSIS1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "SIS", ncores = nworkers / 2)
