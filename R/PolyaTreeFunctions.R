@@ -10,12 +10,26 @@
 #' @export
 #'
 #' @examples
-PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = NULL, leveltot = NULL)  
+#' set.seed(100)
+#' dataset1 = rnorm(200)
+#' dataset2 = rnorm(200) 
+#' PTtest1 = PolyaTreetest(dataset1, dataset2)
+#' PTtest1$logBF #Gives back the log Bayes factor
+#' PTtest1$logBFcont #Gives back the contributions of the log Bayes factor for different levels of the tree. Summing these gives the log BF.
+#' PTtest2 = PolyaTreetest(dataset1, dataset2, Ginv = qnorm, leveltot = 10) #Can fill in arguments to suit data set, default should be good.
+PolyaTreetest <- function(datasetX, datasetY, Ginv = NULL, c = NULL, leveltot = NULL)  
 {
   #A lot of places can be sped up I think by predefining epsilon list and epsilonlist2.
   #The loops themselves also take some time, maybe we can throw the whole thing into C, but the problem is that
   #We have a jagged matrix that's essentially run with a list rn, changing that to be in C might be trickier than it sounds.
   #But it is something I wanted to look into
+  Jointset = c(datasetX, datasetY)
+  if(is.null(Ginv))
+  {
+    meanJ = mean(Jointset)
+    sdJ = sd(Jointset)
+    Ginv = function(x){qnorm(x, mean = meanJ, sd = sdJ)}
+  }
   if(is.null(c))
   {
     c = 1
@@ -104,10 +118,9 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = NULL, leveltot =
     }
   }
   return(list(logBF = -sum(bj), logBFcont =  -bj))
-  
 }
 
-#' Title
+#' Polya Tree model constructor
 #'
 #' @param datasetX A dataset to compute the Polya Tree prior on
 #' @param Ginv A quantile function of some distribution, use to make bins
@@ -118,8 +131,18 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = qnorm, c = NULL, leveltot =
 #' @export
 #'
 #' @examples
-PolyaTreePriorLikCons <- function(datasetX, Ginv = qnorm, c = 1, leveltot = NULL)  
+#' set.seed(100)
+#' dataset1 = rnorm(200)
+#' PTmodel1 = PolyaTreePriorLikCons(datasetX = dataset1)
+#' #Ptmodel1 can be called by other methods in the package to use it
+PolyaTreePriorLikCons <- function(datasetX, Ginv = NULL, c = 1, leveltot = NULL)  
 {
+  if(is.null(Ginv))
+  {
+    meanX = mean(datasetX)
+    sdX = sd(datasetX)
+    Ginv = function(x){qnorm(x, mean = meanX, sd = sdX)}
+  }
   if(is.null(leveltot))
   {
     leveltot = ceiling(log2(length(datasetX)))
@@ -155,7 +178,7 @@ PolyaTreePriorLikCons <- function(datasetX, Ginv = qnorm, c = 1, leveltot = NULL
   return(list(alphalist = alphalist, splitlist = splitlist, c = c, leveltot = leveltot, Ginv = Ginv))
 }
 
-#' Title
+#' Polya Tree test using constructed objects
 #'
 #' @param PolyaTreePriorLik1 An object constructed by PolyaTreePriorLikCons for a dataset. 
 #' @param PolyaTreePriorLik2 Another object constructed by PolyaTreePriorLikCons for another dataset.
@@ -164,6 +187,12 @@ PolyaTreePriorLikCons <- function(datasetX, Ginv = qnorm, c = 1, leveltot = NULL
 #' @export
 #'
 #' @examples
+#' set.seed(100)
+#' dataset1 = rnorm(200)
+#' dataset2 = rnorm(200)
+#' PTmodel1 = PolyaTreePriorLikCons(datasetX = dataset1, Ginv = qnorm)
+#' PTmodel2 = PolyaTreePriorLikCons(datasetX = dataset2, Ginv = qnorm)
+#' PTresults = PolyaTreeBFcons(PTmodel1, PTmodel2)
 PolyaTreeBFcons <- function(PolyaTreePriorLik1, PolyaTreePriorLik2)
 {
   if(PolyaTreePriorLik1$leveltot != PolyaTreePriorLik2$leveltot)
@@ -202,7 +231,7 @@ PolyaTreeBFcons <- function(PolyaTreePriorLik1, PolyaTreePriorLik2)
 
   
 
-#' Title
+#' Sampling from the Polya Tree Predictive distribution
 #'
 #' @param PolyaTreePriorLik An object constructed by PolyaTreePriorLikCons for a dataset. 
 #' @param ndraw Number of draws desired from Predictive Polya Tree distribution.
@@ -211,6 +240,11 @@ PolyaTreeBFcons <- function(PolyaTreePriorLik1, PolyaTreePriorLik2)
 #' @export
 #'
 #' @examples
+#' set.seed(100)
+#' dataset1 = rnorm(200)
+#' PTmodel1 = PolyaTreePriorLikCons(datasetX = dataset1, Ginv = qnorm)
+#' Predictiveposteriordraws = PolyaTreePredDraws(PTmodel1, ndraw = 400)
+#' plot(density(Predictiveposteriordraws))
 PolyaTreePredDraws <- function(PolyaTreePriorLik, ndraw = 2000)
 {
   if(ndraw <= 0)
@@ -260,11 +294,11 @@ PolyaTreePredDraws <- function(PolyaTreePriorLik, ndraw = 2000)
     #need to draw from qnorm((ind - 1) / 2^9)  qnorm(ind / 2^9)
     if(epsilonlist[PolyaTreePriorLik$leveltot] == 0)
     {
-      posteriorPTdraw[i] = sample(largeqnormlist[(largeqnormlist < PolyaTreePriorLik$Ginv(ind / 2^(PolyaTreePriorLik$leveltot+1))) & (largeqnormlist > qnorm((ind-1) / 2^(PolyaTreePriorLik$leveltot+1)))], size = 1)
+      posteriorPTdraw[i] = sample(largeqnormlist[(largeqnormlist < PolyaTreePriorLik$Ginv(ind / 2^(PolyaTreePriorLik$leveltot+1))) & (largeqnormlist > PolyaTreePriorLik$Ginv((ind-1) / 2^(PolyaTreePriorLik$leveltot+1)))], size = 1)
     }
     else
     {
-      posteriorPTdraw[i] = sample(largeqnormlist[(largeqnormlist < PolyaTreePriorLik$Ginv((ind+1) / 2^(PolyaTreePriorLik$leveltot+1))) & (largeqnormlist > qnorm((ind) / 2^(PolyaTreePriorLik$leveltot+1)))], size = 1)
+      posteriorPTdraw[i] = sample(largeqnormlist[(largeqnormlist < PolyaTreePriorLik$Ginv((ind+1) / 2^(PolyaTreePriorLik$leveltot+1))) & (largeqnormlist > PolyaTreePriorLik$Ginv((ind) / 2^(PolyaTreePriorLik$leveltot+1)))], size = 1)
     }
     epsilonlist = c()
     #indlist[i] = ind

@@ -1,4 +1,4 @@
-#' Evaluate the log prior on one of the data sets
+#' Evaluate the log prior on one of the data sets. Called by other functions.
 #'
 #' @param h A value to evaluate the prior on
 #' @param hhat Tuning parameter for the prior
@@ -7,6 +7,7 @@
 #' @export
 #'
 #' @examples
+#' logpriorused(.1,.1)
 logpriorused <- function(h,hhat)
 {
   beta = hhat
@@ -146,6 +147,14 @@ laplace.kernH2c = function(y, x, hhat, c){
 #' @export
 #'
 #' @examples
+#' set.seed(100)
+#' dataset1 = rnorm(200)
+#' dataset2 = rnorm(200) 
+#' CVBF1 = CVBFtestrsplit(dataset1, dataset2, trainsize1 = 100, trainsize2 = 100)
+#' CVBF1$logBF #Gives back the log Bayes factor
+#' CVBF1$train1_ids #Gives back the training set of the first data set
+#' CVBF1$train2_ids #Gives back the training set of the second data set
+#' 
 CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NULL, train1_ids = NULL, train2_ids = NULL)
 {
   if(is.null(trainsize1))
@@ -231,7 +240,14 @@ HallKernel = function(h,datagen2,x)
 #' @export
 #'
 #' @examples
-PredCVBFMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, startingbw = NULL)
+#' set.seed(500)
+#' datasetsample1 = rnorm(600)
+#' trainingindices1 = sample(1:600, size = 300)
+#' XT1 = datasetsample1[trainingindices1]
+#' XV1 = datasetsample1[-trainingindices1]
+#' predbwvec1 = PredCVBFMHbw(ndraw = 500, maxIter = 5000, XT1 = XT1, XV1 = XV1)
+
+PredCVBFMHbw = function(ndraw = 100, propsd = NULL, maxIter = 10000, XT1, XV1, startingbw = NULL)
 {
   bwvec = c()
   if(is.null(startingbw))
@@ -242,6 +258,10 @@ PredCVBFMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, sta
   }
   else{
     bwvec[1] = startingbw
+  }
+  if(is.null(propsd))
+  {
+    propsd = startingbw * length(XT1) ^ (-1 / 10)
   }
   beta = startingbw
   postcurr = sum(log(HallKernel(bwvec[1], datagen2 = XT1, x = XV1))) + log(2*beta) - .5*log(pi) - 2*log(bwvec[1]) - (beta^2 / bwvec[1]^2)
@@ -287,7 +307,7 @@ PredCVBFMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, sta
 #' Draw bandwidths from CVBF predictive posterior by independent Metropolis Hasting sampling
 #'
 #' @param ndraw Number of unique draws desired for the bandwidth parameter from the posterior.
-#' @param propsd A tuning parameter, corresponds to what proposal standard deviation should be for when using MH to traverse the posterior. Should be chosen with care to ensure good mixing. Higher acceptance rates are OK here, compared to classic MH.
+#' @param propsd A tuning parameter, corresponds to what proposal standard deviation should be for when using MH to traverse the posterior. We give a decent theoretical default. May need to be altered if performance is bad.
 #' @param maxIter The max number of MH iterations to try. Do not set to be too large. It will kick the code out if acceptance rates for MH are small.
 #' @param XT1 Training set for a data set
 #' @param XV1 Validation set for a data set
@@ -297,6 +317,14 @@ PredCVBFMHbw = function(ndraw = 100, propsd = .1, maxIter = 10000, XT1, XV1, sta
 #' @export
 #'
 #' @examples
+#' set.seed(500)
+#' datasetsample1 = rnorm(600)
+#' trainingindices1 = sample(1:600, size = 300)
+#' XT1 = datasetsample1[trainingindices1]
+#' XV1 = datasetsample1[-trainingindices1]
+#' predbwvec1 = PredCVBFIndepMHbw(ndraw = 500, maxIter = 5000, XT1 = XT1, XV1 = XV1)
+#'
+ 
 PredCVBFIndepMHbw = function(ndraw = 100, propsd = NULL, maxIter = 10000, XT1, XV1, startingbw = NULL)
 {
   bwvec = c()
@@ -362,6 +390,8 @@ PredCVBFIndepMHbw = function(ndraw = 100, propsd = NULL, maxIter = 10000, XT1, X
 #' @export
 #'
 #' @examples
+#' 
+#' 
 PredCVBFDens = function(bwvec, XT1)
 {
   PredictedDens = function(support)
