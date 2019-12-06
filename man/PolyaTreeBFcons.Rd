@@ -2,7 +2,7 @@
 % Please edit documentation in R/PolyaTreeFunctions.R
 \name{PolyaTreeBFcons}
 \alias{PolyaTreeBFcons}
-\title{Title}
+\title{Polya Tree test using constructed objects}
 \usage{
 PolyaTreeBFcons(PolyaTreePriorLik1, PolyaTreePriorLik2)
 }
@@ -15,5 +15,13 @@ PolyaTreeBFcons(PolyaTreePriorLik1, PolyaTreePriorLik2)
 A scalar, which corresponds to the log BF of the test. Another vector is given which corresponds to the contribution of the log BF at each level.
 }
 \description{
-Title
+Polya Tree test using constructed objects
+}
+\examples{
+set.seed(100)
+dataset1 = rnorm(200)
+dataset2 = rnorm(200)
+PTmodel1 = PolyaTreePriorLikCons(datasetX = dataset1, Ginv = qnorm)
+PTmodel2 = PolyaTreePriorLikCons(datasetX = dataset2, Ginv = qnorm)
+PTresults = PolyaTreeBFcons(PTmodel1, PTmodel2)
 }

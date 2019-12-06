@@ -2,7 +2,7 @@
 % Please edit documentation in R/CVBFFunctions.R
 \name{logpriorused}
 \alias{logpriorused}
-\title{Evaluate the log prior on one of the data sets}
+\title{Evaluate the log prior on one of the data sets. Called by other functions.}
 \usage{
 logpriorused(h, hhat)
 }
@@ -15,5 +15,8 @@ logpriorused(h, hhat)
 Evaluates a particular type of prior placed on the bandwidth for CVBF.
 }
 \description{
-Evaluate the log prior on one of the data sets
+Evaluate the log prior on one of the data sets. Called by other functions.
+}
+\examples{
+logpriorused(.1,.1)
 }

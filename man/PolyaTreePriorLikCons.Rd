@@ -2,9 +2,9 @@
 % Please edit documentation in R/PolyaTreeFunctions.R
 \name{PolyaTreePriorLikCons}
 \alias{PolyaTreePriorLikCons}
-\title{Title}
+\title{Polya Tree model constructor}
 \usage{
-PolyaTreePriorLikCons(datasetX, Ginv = qnorm, c = 1, leveltot = NULL)
+PolyaTreePriorLikCons(datasetX, Ginv = NULL, c = 1, leveltot = NULL)
 }
 \arguments{
 \item{datasetX}{A dataset to compute the Polya Tree prior on}
@@ -19,5 +19,11 @@ PolyaTreePriorLikCons(datasetX, Ginv = qnorm, c = 1, leveltot = NULL)
 A list of vectors called alphalist, a list of vectors called splitlist, c, leveltot, and Ginv. Alphalist is used to construct a prior. Splitlist is used to construct a likelihood. Call the collection of these a Polya Tree object.
 }
 \description{
-Title
+Polya Tree model constructor
+}
+\examples{
+set.seed(100)
+dataset1 = rnorm(200)
+PTmodel1 = PolyaTreePriorLikCons(datasetX = dataset1)
+#Ptmodel1 can be called by other methods in the package to use it
 }

@@ -16,7 +16,7 @@ PredCVBFIndepMHbw(
 \arguments{
 \item{ndraw}{Number of unique draws desired for the bandwidth parameter from the posterior.}
 
-\item{propsd}{A tuning parameter, corresponds to what proposal standard deviation should be for when using MH to traverse the posterior. Should be chosen with care to ensure good mixing. Higher acceptance rates are OK here, compared to classic MH.}
+\item{propsd}{A tuning parameter, corresponds to what proposal standard deviation should be for when using MH to traverse the posterior. We give a decent theoretical default. May need to be altered if performance is bad.}
 
 \item{maxIter}{The max number of MH iterations to try. Do not set to be too large. It will kick the code out if acceptance rates for MH are small.}
 
@@ -31,4 +31,13 @@ A list of bandwidths that come from the posterior distribution. This will be lar
 }
 \description{
 Draw bandwidths from CVBF predictive posterior by independent Metropolis Hasting sampling
+}
+\examples{
+set.seed(500)
+datasetsample1 = rnorm(600)
+trainingindices1 = sample(1:600, size = 300)
+XT1 = datasetsample1[trainingindices1]
+XV1 = datasetsample1[-trainingindices1]
+predbwvec1 = PredCVBFIndepMHbw(ndraw = 500, maxIter = 5000, XT1 = XT1, XV1 = XV1)
+
 }

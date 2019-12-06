@@ -6,7 +6,7 @@
 \usage{
 PredCVBFMHbw(
   ndraw = 100,
-  propsd = 0.1,
+  propsd = NULL,
   maxIter = 10000,
   XT1,
   XV1,
@@ -31,4 +31,12 @@ A list of bandwidths that come from the posterior distribution. This will be lar
 }
 \description{
 Draw bandwidths from CVBF predictive posterior by Metropolis Hasting sampling
+}
+\examples{
+set.seed(500)
+datasetsample1 = rnorm(600)
+trainingindices1 = sample(1:600, size = 300)
+XT1 = datasetsample1[trainingindices1]
+XV1 = datasetsample1[-trainingindices1]
+predbwvec1 = PredCVBFMHbw(ndraw = 500, maxIter = 5000, XT1 = XT1, XV1 = XV1)
 }

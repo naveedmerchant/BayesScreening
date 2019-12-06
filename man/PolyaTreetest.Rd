@@ -4,7 +4,7 @@
 \alias{PolyaTreetest}
 \title{Polya Tree test}
 \usage{
-PolyaTreetest(datasetX, datasetY, Ginv = qnorm, c = NULL, leveltot = NULL)
+PolyaTreetest(datasetX, datasetY, Ginv = NULL, c = NULL, leveltot = NULL)
 }
 \arguments{
 \item{datasetX}{A set of data (or in the case of screening a predictor corresponding to one class), one of the data sets we want to check if its distribution is the same as dataset Y's.}
@@ -22,4 +22,13 @@ Currently returns a scalar that corresponds to the log BF of the computed test.
 }
 \description{
 Polya Tree test
+}
+\examples{
+set.seed(100)
+dataset1 = rnorm(200)
+dataset2 = rnorm(200) 
+PTtest1 = PolyaTreetest(dataset1, dataset2)
+PTtest1$logBF #Gives back the log Bayes factor
+PTtest1$logBFcont #Gives back the contributions of the log Bayes factor for different levels of the tree. Summing these gives the log BF.
+PTtest2 = PolyaTreetest(dataset1, dataset2, Ginv = qnorm, leveltot = 10) #Can fill in arguments to suit data set, default should be good.
 }

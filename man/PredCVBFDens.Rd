@@ -17,3 +17,7 @@ A function that evaluates the predictive posterior at particular values
 \description{
 Compute a Predictive Posterior function given a sequence of bandwidths from the predictive posterior
 }
+\examples{
+
+
+}

@@ -19,6 +19,20 @@
 #' @export
 #'
 #' @examples
+#' data(gisettetrainlabs)
+#' data(gisettetrainpreds)
+#' nworkers = detectCores()
+#' ImpVarsSIS1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "SIS", ncores = nworkers / 2)
+#' length(ImpVarsSIS1$varspicked)
+#' ImpVarsKS1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "KS", ncores = nworkers / 2)
+#' length(ImpVarsKS1$varspicked)
+#' ImpVarsPT1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "PT", ncores = nworkers / 2, c = 1, leveltot = 12, Ginv = qnorm, PTscale = TRUE)
+#' #Only do on first 500
+#' length(ImpVarsPT1$varspicked)
+#' hist(ImpVarsPT1$logBFlist)
+#' ImpVarsCVBF1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = nworkers / 2, trainsize1 = 2960, trainsize2 = 2960, seed = 200)
+#' length(ImpVarsCVBF1$varspicked)
+#' 
 ParScreenVars <- function(datasetX, datasetY, method = "SIS", ncores = 1, cutoff = NULL, train1ids = NULL, trainsize1 = NULL, trainsize2 = NULL, train2ids = NULL, seed = NULL, Ginv = NULL, c = NULL, leveltot = NULL, PTscale = TRUE)
 {
   n = nrow(datasetX)

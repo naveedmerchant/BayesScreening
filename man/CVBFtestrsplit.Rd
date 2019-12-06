@@ -35,3 +35,13 @@ A log BF that tests whether two distributions are the same via CVBF.
 \description{
 Compute a CVBF, a Bayes factor that checks if two data sets share the same distribution.
 }
+\examples{
+set.seed(100)
+dataset1 = rnorm(200)
+dataset2 = rnorm(200) 
+CVBF1 = CVBFtestrsplit(dataset1, dataset2, trainsize1 = 100, trainsize2 = 100)
+CVBF1$logBF #Gives back the log Bayes factor
+CVBF1$train1_ids #Gives back the training set of the first data set
+CVBF1$train2_ids #Gives back the training set of the second data set
+
+}
