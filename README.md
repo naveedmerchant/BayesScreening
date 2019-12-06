@@ -16,11 +16,9 @@ Intended users of this package are people that either want to use the screening 
 
 ``` r
 devtools::install_github("naveedmerchant/BayesScreening")
-#or
-devtools::install_github("naveedmerchant/BayesScreening", build = TRUE, build_opts = c("--no-resave-data", "--no-manual"))
-
-
 ```
+If this fails check if you have the most recent version of R (I believe it requires an R version of at least 3.6.1).
+Do not update Rcpp when prompted.
 
 ## Usage
 
