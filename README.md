@@ -64,7 +64,7 @@ KSvars = SeqScreenVars(datasetX = gisettetrainpreds[, 1:10], datasetY = gisettet
 length(KSvars$varspicked)
 
 #CVBF or Cross Validation Bayes Factor is another bayesian method
-CVBFvars = SeqScreenVars(datasetX = gisettetrainpreds[, 1:10], datasetY = gisettetrainlabs[,1], method = "CVBF")
+CVBFvars = SeqScreenVars(datasetX = gisettetrainpreds[, 1:10], datasetY = gisettetrainlabs[,1], method = "CVBF", trainsize1 = 2960, trainsize2 = 2960, seed = 100)
 #May take a little more time to run
 #Return number of vars that CVBF deemed important
 length(CVBFvars$varspicked)
