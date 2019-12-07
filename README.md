@@ -59,14 +59,14 @@ A sequential version is also available
 data(gisettetrainpreds)
 data(gisettetrainlabs)
 #KS is another classical method
-KSvars = SeqScreenVars(datasetX = gisettetrainpreds[, 1:10], datasetY = gisettetrainlabs[,1], method = "SIS")
+KSvars = SeqScreenVars(datasetX = gisettetrainpreds[, 1:10], datasetY = gisettetrainlabs[,1], method = "KS")
 #Return number of vars that KS deemed important
 length(KSvars$varspicked)
 
 #CVBF or Cross Validation Bayes Factor is another bayesian method
-CVBFvars = SeqScreenVars(datasetX = gisettetrainpreds[, 1:10], datasetY = gisettetrainlabs[,1], method = "PT")
+CVBFvars = SeqScreenVars(datasetX = gisettetrainpreds[, 1:10], datasetY = gisettetrainlabs[,1], method = "CVBF")
 #May take a little more time to run
-#Return number of vars that PT deemed important
+#Return number of vars that CVBF deemed important
 length(CVBFvars$varspicked)
 ```
 
