@@ -28,7 +28,7 @@ Maintainer: \packageMaintainer{BSCRN}
 
 \href{https://www.jstor.org/stable/27639772?seq=1#metadata_info_tab_contents}{Hanson's paper on inference of Polya Trees} Hanson, T. (2006). Inference for Mixtures of Finite Polya Tree Models. Journal of the American Statistical Association, 101(476), 1548-1565. Retrieved from www.jstor.org/stable/27639772
 
-\href{Holmes et al.'s POlya Tree test}{https://arxiv.org/pdf/0910.5060.pdf} Holmes, C. C., Caron, F., Griffin, J. E., & Stephens, D. A. (2015). Two-sample Bayesian nonparametric hypothesis testing. Bayesian Analysis, 10(2), 297-320.
+\href{https://arxiv.org/pdf/0910.5060.pdf}{Holmes et al.'s POlya Tree test} Holmes, C. C., Caron, F., Griffin, J. E., & Stephens, D. A. (2015). Two-sample Bayesian nonparametric hypothesis testing. Bayesian Analysis, 10(2), 297-320.
 
 \href{https://reader.elsevier.com/reader/sd/pii/S0167947312003945?token=1050252D85E674DBD37024EBCF00550AB0972473F7CDE3A6BAB5AF4CDC141C20C6FC47E94CB61E36C89A4E79575CD634}{Hanson and Chen's Polya Tree test} Chen, Y., & Hanson, T. E. (2014). Bayesian nonparametric k-sample tests for censored and uncensored data. Computational Statistics & Data Analysis, 71, 335-346.
 
