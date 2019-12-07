@@ -119,4 +119,4 @@ plot(seq(from = min(dataset1), to = max(dataset1), length.out = 100) , dnorm(seq
 
 A Vignette is available for assistance in understanding the package. While it can be downloaded and built with the package, some of the code in it can take a while to run, especially if the computer running it does not have many cores.
 
-The Vignette can be found here:
+The Vignette can be found [here](http://htmlpreview.github.io/?https://github.com/naveedmerchant/BayesScreening/blob/master/doc/BSCRNVignette.html).
