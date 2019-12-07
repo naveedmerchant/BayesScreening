@@ -133,7 +133,7 @@ laplace.kernH2c = function(y, x, hhat, c){
 #' @param train2_ids Indices for the training set of dataset 2
 #' @param seed The seed used to generate training set and validation sets for both of the data sets
 #'
-#' @return A log BF that tests whether two distributions are the same via CVBF.
+#' @return A list containing a log BF that tests whether two distributions are the same via CVBF, and the training sets used to generate the CVBF.
 #' @export
 #'
 #' @examples

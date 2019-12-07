@@ -1,4 +1,4 @@
-#' Polya Tree test
+#' Compute a Bayes factor that checks to see if two data sets share the same distribution by Polya Tree
 #'
 #' @param datasetX A set of data (or in the case of screening a predictor corresponding to one class), one of the data sets we want to check if its distribution is the same as dataset Y's. 
 #' @param datasetY Another set of data (or in the case of screening a predictor corresponding to another class), the other data set we're comparing to datasetX
@@ -6,7 +6,7 @@
 #' @param c A tuning parameter corresponding to how influential the prior should be. Authors recommend to set to 1. Can change from 1. The larger the tuning parameter the more influential the prior. The smaller the tuning parameter the less influential the prior.
 #' @param leveltot Total number of levels deep the tree should go. 9 is given as a default. Some authors recommend going to $log_2(sample size)$, but doesn't need to be done. The deeper the tree the more computation that is required. 
 #'
-#' @return Currently returns a scalar that corresponds to the log BF of the computed test. 
+#' @return Returns a list. The log BF component is a scalar that corresponds to the log BF of the computed test, and a vector which correspons to the contribution of the log BF at each level. 
 #' @export
 #'
 #' @examples
@@ -120,7 +120,7 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = NULL, c = NULL, leveltot = 
   return(list(logBF = -sum(bj), logBFcont =  -bj))
 }
 
-#' Polya Tree model constructor
+#' Construct a Polya tree object for a data set
 #'
 #' @param datasetX A dataset to compute the Polya Tree prior on
 #' @param Ginv A quantile function of some distribution, use to make bins
@@ -178,7 +178,7 @@ PolyaTreePriorLikCons <- function(datasetX, Ginv = NULL, c = 1, leveltot = NULL)
   return(list(alphalist = alphalist, splitlist = splitlist, c = c, leveltot = leveltot, Ginv = Ginv))
 }
 
-#' Polya Tree test using constructed objects
+#' Polya Tree test for checking if two data sets share the same distribution using Polya tree objects. 
 #'
 #' @param PolyaTreePriorLik1 An object constructed by PolyaTreePriorLikCons for a dataset. 
 #' @param PolyaTreePriorLik2 Another object constructed by PolyaTreePriorLikCons for another dataset.
@@ -231,7 +231,7 @@ PolyaTreeBFcons <- function(PolyaTreePriorLik1, PolyaTreePriorLik2)
 
   
 
-#' Sampling from the Polya Tree Predictive distribution
+#' Generate draws from a Polya Tree model's Predictive distribution
 #'
 #' @param PolyaTreePriorLik An object constructed by PolyaTreePriorLikCons for a dataset. 
 #' @param ndraw Number of draws desired from Predictive Polya Tree distribution.

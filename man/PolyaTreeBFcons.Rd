@@ -2,7 +2,7 @@
 % Please edit documentation in R/PolyaTreeFunctions.R
 \name{PolyaTreeBFcons}
 \alias{PolyaTreeBFcons}
-\title{Polya Tree test using constructed objects}
+\title{Polya Tree test for checking if two data sets share the same distribution using Polya tree objects.}
 \usage{
 PolyaTreeBFcons(PolyaTreePriorLik1, PolyaTreePriorLik2)
 }
@@ -15,7 +15,7 @@ PolyaTreeBFcons(PolyaTreePriorLik1, PolyaTreePriorLik2)
 A scalar, which corresponds to the log BF of the test. Another vector is given which corresponds to the contribution of the log BF at each level.
 }
 \description{
-Polya Tree test using constructed objects
+Polya Tree test for checking if two data sets share the same distribution using Polya tree objects.
 }
 \examples{
 set.seed(100)

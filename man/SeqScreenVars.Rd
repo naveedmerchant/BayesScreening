@@ -2,7 +2,7 @@
 % Please edit documentation in R/ScreeningMethods.R
 \name{SeqScreenVars}
 \alias{SeqScreenVars}
-\title{Screen a data set for important functions in parallel}
+\title{Screen a data set for important functions sequentially (not in parallel)}
 \usage{
 SeqScreenVars(
   datasetX,
@@ -51,7 +51,7 @@ SeqScreenVars(
 A list of variables that are interpreted to be important
 }
 \description{
-Screen a data set for important functions in parallel
+Screen a data set for important functions sequentially (not in parallel)
 }
 \examples{
 data(gisettetrainlabs)

@@ -30,7 +30,7 @@ CVBFtestrsplit(
 \item{train2_ids}{Indices for the training set of dataset 2}
 }
 \value{
-A log BF that tests whether two distributions are the same via CVBF.
+A list containing a log BF that tests whether two distributions are the same via CVBF, and the training sets used to generate the CVBF.
 }
 \description{
 Compute a CVBF, a Bayes factor that checks if two data sets share the same distribution.

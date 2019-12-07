@@ -30,9 +30,9 @@ predbwvec1 = PredCVBFIndepMHbw(ndraw = 500, maxIter = 5000, XT1 = XT1, XV1 = XV1
 
 predbwvec2 = PredCVBFMHbw(ndraw = 500, maxIter = 4000, XT1 = XT1, XV1 = XV1)
  
-plot(predbwvec1$predbwsamp)
+plot(predbwvec1$predbwsamp, xlab = "chain iteration", ylab = "bandwidth value drawn", main = "Bandwidth draws from the posterior by Independent Metropolis Sampler")
  
-plot(predbwvec2$predbwsamp)
+plot(predbwvec2$predbwsamp, xlab = "chain iteration", ylab = "bandwidth value drawn", main = "Bandwidth draws from the posterior by Metropolis Sampler")
 
 #Independence Metropolis acceptance rate
 
@@ -119,12 +119,12 @@ length(ImpVarsKS1$varspicked)
 ImpVarsPT1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "PT", ncores = nworkers / 2, c = 1, leveltot = 12, Ginv = qnorm, PTscale = TRUE)
  #Only do on first 500
 length(ImpVarsPT1$varspicked)
-hist(ImpVarsPT1$logBFlist)
+hist(ImpVarsPT1$logBFlist, main = "log BF values for different predictors for Polya tree test", xlab = "Log Bayes factor value", ylab = "frequency")
 
 #
 ImpVarsCVBF1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = nworkers / 2, trainsize1 = 2960, trainsize2 = 2960, seed = 200)
 length(ImpVarsCVBF1$varspicked)
-hist(ImpVarsCVBF1$logBFlist)
+hist(ImpVarsCVBF1$logBFlist, main = "log CVBF values for different predictors", xlab = "Log Bayes factor value", ylab = "frequency")
 
 
 
@@ -139,8 +139,8 @@ data(gisettetrainpreds)
 
 ImpVarsKS1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "KS")
 ImpVarsSIS1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "SIS")
-ImpVarsCVBF1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:20], datasetY = gisettetrainlabs[,1], method = "CVBF", trainsize1 = 2960, trainsize2 = 2960, seed = 200)
-ImpVarsPT1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:20], datasetY = gisettetrainlabs[,1], method = "PT")
+ImpVarsCVBF1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:100], datasetY = gisettetrainlabs[,1], method = "CVBF", trainsize1 = 2960, trainsize2 = 2960, seed = 200)
+ImpVarsPT1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:100], datasetY = gisettetrainlabs[,1], method = "PT")
 
 length(ImpVarsSIS1$varspicked)
 
@@ -148,11 +148,11 @@ length(ImpVarsKS1$varspicked)
 
 length(ImpVarsPT1$varspicked)
 
-hist(ImpVarsPT1$logBFlist)
+hist(ImpVarsPT1$logBFlist, main = "log Bayes factors for different predictors of Polya Tree test", xlab = "Log Bayes factor value", ylab = "frequency")
 
 length(ImpVarsCVBF1$varspicked)
 
-hist(ImpVarsCVBF1$logBFlist)
+hist(ImpVarsCVBF1$logBFlist, main = "log CVBF values for different predictors", xlab = "Log Bayes factor value", ylab = "frequency")
 
 
 

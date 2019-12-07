@@ -128,7 +128,7 @@ ParScreenVars <- function(datasetX, datasetY, method = "SIS", ncores = 1, cutoff
 }
 
 
-#' Screen a data set for important functions in parallel
+#' Screen a data set for important functions sequentially (not in parallel)
 #'
 #' @param datasetX A matrix containing values that are predictors for the Y values
 #' @param datasetY A vector containg the class that each predictor corresponds to. For now can only handle binary responses.

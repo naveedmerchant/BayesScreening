@@ -2,7 +2,7 @@
 % Please edit documentation in R/PolyaTreeFunctions.R
 \name{PolyaTreetest}
 \alias{PolyaTreetest}
-\title{Polya Tree test}
+\title{Compute a Bayes factor that checks to see if two data sets share the same distribution by Polya Tree}
 \usage{
 PolyaTreetest(datasetX, datasetY, Ginv = NULL, c = NULL, leveltot = NULL)
 }
@@ -18,10 +18,10 @@ PolyaTreetest(datasetX, datasetY, Ginv = NULL, c = NULL, leveltot = NULL)
 \item{leveltot}{Total number of levels deep the tree should go. 9 is given as a default. Some authors recommend going to $log_2(sample size)$, but doesn't need to be done. The deeper the tree the more computation that is required.}
 }
 \value{
-Currently returns a scalar that corresponds to the log BF of the computed test.
+Returns a list. The log BF component is a scalar that corresponds to the log BF of the computed test, and a vector which correspons to the contribution of the log BF at each level.
 }
 \description{
-Polya Tree test
+Compute a Bayes factor that checks to see if two data sets share the same distribution by Polya Tree
 }
 \examples{
 set.seed(100)

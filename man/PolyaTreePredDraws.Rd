@@ -2,7 +2,7 @@
 % Please edit documentation in R/PolyaTreeFunctions.R
 \name{PolyaTreePredDraws}
 \alias{PolyaTreePredDraws}
-\title{Sampling from the Polya Tree Predictive distribution}
+\title{Generate draws from a Polya Tree model's Predictive distribution}
 \usage{
 PolyaTreePredDraws(PolyaTreePriorLik, ndraw = 2000)
 }
@@ -15,7 +15,7 @@ PolyaTreePredDraws(PolyaTreePriorLik, ndraw = 2000)
 A list of draws from the Predictive Polya Tree Posterior
 }
 \description{
-Sampling from the Polya Tree Predictive distribution
+Generate draws from a Polya Tree model's Predictive distribution
 }
 \examples{
 set.seed(100)
