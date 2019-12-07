@@ -3,6 +3,7 @@ Naveed Merchant
   - [Installation](#installation)
   - [Usage](#usage)
   - [Examples](#examples)
+  - [Vignette](#Vignette)
 ## Introduction
 
 BayesScreening is an R package for screening important variables for data sets with large amounts of predictors. This screening is intended for binary classification. It does this by applying Bayesian tests that check if two or more samples have the same distribution. There are also other screening methods to compare these methods to in this package. This package also supports running this screening in parallel.
@@ -28,11 +29,11 @@ library(BSCRN)
 
 ## Examples
 
-### 1\. Parallel Screening of data for binary classification
+### 1\. Screening of data for binary classification
 
 For data sets with a large number of predictors, its rare that all predictors are truly useful. This function takes
 a data set that contains a column corresponding to classes, and a matrix containing predictors. It returns a 
-list of indices that correspond to the predictors that are believed to be useful for screening. It does so in parallel. 
+list of indices that correspond to the predictors that are believed to be useful for screening. It can do this in parallel, or sequentially. 
 
 ``` r
 nworkers = detectCores()
@@ -40,15 +41,33 @@ nworkers = detectCores()
 data(gisettetrainpreds)
 data(gisettetrainlabs)
 #SIS is a classic method
-SISvars = ParScreenVars(datasetX = gisettetrainpreds, datasetY = gisettetrainlabs[,1], method = "SIS", ncores = nworkers - 1)
+SISvars = ParScreenVars(datasetX = gisettetrainpreds[, 1:10], datasetY = gisettetrainlabs[,1], method = "SIS", ncores = nworkers - 1)
 #Return number of vars that SIS deemed important
-length(SISvars)
+length(SISvars$varspicked)
 
 #PT or Polya tree is a bayesian method
-PTvars = ParScreenVars(datasetX = gisettetrainpreds, datasetY = gisettetrainlabs[,1], method = "PT", ncores = nworkers - 1)
+PTvars = ParScreenVars(datasetX = gisettetrainpreds[, 1:10], datasetY = gisettetrainlabs[,1], method = "PT", ncores = nworkers - 1)
 #May take a little more time to run
 #Return number of vars that PT deemed important
-length(PTvars)
+length(PTvars$varspicked)
+```
+
+A sequential version is also available 
+
+
+``` r
+data(gisettetrainpreds)
+data(gisettetrainlabs)
+#KS is another classical method
+KSvars = SeqScreenVars(datasetX = gisettetrainpreds[, 1:10], datasetY = gisettetrainlabs[,1], method = "SIS")
+#Return number of vars that KS deemed important
+length(KSvars$varspicked)
+
+#CVBF or Cross Validation Bayes Factor is another bayesian method
+CVBFvars = SeqScreenVars(datasetX = gisettetrainpreds[, 1:10], datasetY = gisettetrainlabs[,1], method = "PT")
+#May take a little more time to run
+#Return number of vars that PT deemed important
+length(CVBFvars$varspicked)
 ```
 
 ### 2\. Testing two data sets to see if they share the same distribution
@@ -61,16 +80,16 @@ set.seed(100)
 dataset1 = rnorm(200)
 dataset2 = rnorm(200) 
 logPTBF1 = PolyaTreetest(datasetX = dataset1, datasetY = dataset2)
-logPTBF1
+logPTBF1$logBF
 logCVBF1 = CVBFtestrsplit(dataset1, dataset2, trainsize1 = 100, trainsize2 = 100)
-logCVBF1
+logCVBF1$logBF
 
 #generate noise with different distribution 
 dataset3 = rnorm(200, mean = 0, sd = 4)
 logPTBF1 = PolyaTreetest(datasetX = dataset1, datasetY = dataset3)
-logPTBF1
+logPTBF1$logBF
 logCVBF1 = CVBFtestrsplit(dataset1, dataset3, trainsize1 = 100, trainsize2 = 100)
-logCVBF1
+logCVBF1$logBF
 
 ```
 
@@ -87,8 +106,8 @@ sampledraws = PolyaTreePredDraws(sampPT1, ndraw = 200)
 plot(density(sampledraws))
 
 #CVBF predictive posterior
-XT1 = datasetX[1:100]
-XV1 = datasetX[101:200]
+XT1 = dataset1[1:100]
+XV1 = dataset1[101:200]
 predbwvec1 = PredCVBFIndepMHbw(ndraw = 200, propsd = 0.01, maxIter = 1000, XT1 = XT1, XV1 = XV1)
 predpostsamp = PredCVBFDens(predbwvec1$predbwsamp, XT1 = XT1)
 plot(seq(from = min(dataset1), to = max(dataset1), length.out = 100) , predpostsamp(seq(from = min(dataset1), to = max(dataset1), length.out = 100)))
@@ -96,3 +115,8 @@ plot(seq(from = min(dataset1), to = max(dataset1), length.out = 100) , predposts
 plot(seq(from = min(dataset1), to = max(dataset1), length.out = 100) , dnorm(seq(from = min(dataset1), to = max(dataset1), length.out = 100)))
 
 ```
+## Vignette
+
+A Vignette is available for assistance in understanding the package. While it can be downloaded and built with the package, some of the code in it can take a while to run, especially if the computer running it does not have many cores.
+
+The Vignette can be found here:
