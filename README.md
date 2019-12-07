@@ -10,7 +10,7 @@ BayesScreening is an R package for screening important variables for data sets w
 
 The tests themselves may also be useful alone. The functions to run the tests themselves are in the package. As the tests are nonparametric bayesian tests, a person may also be interested in sampling from the predictive posterior of these bayesian tests. There is functionality available to do this as well. The GISETTE dataset is also supplied through this package. If desired, downloading the package will give access to the GISETTE dataset.
 
-Intended users of this package are people that either want to use the screening methods, want to use the tests to check if the distributions are the same, or are people that want to see bayesian predictive posteriors that estimate the distribution of the data under few assumptions.
+Intended users of this package are people that either want to use the screening methods, want to use the tests to check if the distributions are the same, or are people that want to see bayesian predictive posteriors that estimate the distribution of the data under few assumptions. While screening methods are intended to be fast, Bayesian methods are known to be slow. Future research lies in speeding up these algorithms by implementing approximate bayesian computation algorithms.
 
 
 ## Installation
@@ -103,17 +103,17 @@ Examining the predictive posterior of these tests gives an idea as to what the b
 dataset1 = rnorm(200)
 sampPT1 = PolyaTreePriorLikCons(datasetX = dataset1)
 sampledraws = PolyaTreePredDraws(sampPT1, ndraw = 200)
-plot(density(sampledraws))
+plot(density(sampledraws), xlab = "Support of distribution", ylab = "density", main = "Predictive posterior of Polya Tree in black vs true density in blue")
+lines(seq(from = min(dataset1), to = max(dataset1), length.out = 100) , dnorm(seq(from = min(dataset1), to = max(dataset1), length.out = 100)), col = "blue")
 
 #CVBF predictive posterior
 XT1 = dataset1[1:100]
 XV1 = dataset1[101:200]
-predbwvec1 = PredCVBFIndepMHbw(ndraw = 200, propsd = 0.01, maxIter = 1000, XT1 = XT1, XV1 = XV1)
+predbwvec1 = PredCVBFIndepMHbw(ndraw = 200, maxIter = 1000, XT1 = XT1, XV1 = XV1)
 predpostsamp = PredCVBFDens(predbwvec1$predbwsamp, XT1 = XT1)
-plot(seq(from = min(dataset1), to = max(dataset1), length.out = 100) , predpostsamp(seq(from = min(dataset1), to = max(dataset1), length.out = 100)))
+plot(seq(from = min(dataset1), to = max(dataset1), length.out = 100) , predpostsamp(seq(from = min(dataset1), to = max(dataset1), length.out = 100)), xlab = "Support of distribution", ylab = "density", main = "Predictive posterior of CVBF in black points vs true density in blue")
 
-plot(seq(from = min(dataset1), to = max(dataset1), length.out = 100) , dnorm(seq(from = min(dataset1), to = max(dataset1), length.out = 100)))
-
+lines(seq(from = min(dataset1), to = max(dataset1), length.out = 100) , dnorm(seq(from = min(dataset1), to = max(dataset1), length.out = 100)), col = "blue")
 ```
 ## Vignette
 
