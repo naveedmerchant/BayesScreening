@@ -19,3 +19,6 @@ An object of the same dimension as x that evaluates a KDE trained on datagen2 on
 \description{
 Compute Hall Kernel density estimate, given a training set and a set of values to evaluate on
 }
+\examples{
+
+}

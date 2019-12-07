@@ -40,13 +40,13 @@ names(PTsample1)
 
 ```
 
-A list made by PolyaTreePriorLikCons contains 5 arguments. The alphalist is a (large) list of parameters that correspond to the Polya Tree prior. Alternatively, it contains arguments that weightedly average the histogram. There are leveltot lists in this list, and the $j$'th list contains $2^j$ elements. By default, all of the elements in the list are set to be equal to $c*j^2$, where c is a parameter that can be specified when running the Polya tree function and $j$ corresponds to the $j$'th list. This is a procedure we've done at recommendation as a default by another paper (https://www.sciencedirect.com/science/article/pii/S0167947312003945), however, it is not the only way this test can be run. 
+A list made by PolyaTreePriorLikCons contains 5 arguments. The alphalist is a (large) list of parameters that correspond to the Polya Tree prior. Alternatively, it contains arguments that weightedly average the histogram. There are leveltot lists in this list, and the $j$'th list contains $2^j$ elements. By default, all of the elements in the list are set to be equal to $c*j^2$, where c is a parameter that can be specified when running the Polya tree function and $j$ corresponds to the $j$'th list. This is a procedure we've done at recommendation as a default by Chen and Hanson (2015) (https://www.sciencedirect.com/science/article/pii/S0167947312003945), however, it is not the only way this test can be run. 
 
 If desired (although not recommended unless you want to experiment), alphalist "can" be altered, and we honestly believe that altering it to suit the data set can probably result in better priors, but it should be done with care. It is for this reason, we've left alphalist as a list of lists, rather than as a vector.
 
 Leveltot corresponds to how fine of histograms we need to compute. Letting leveltot be large is a bad idea. Computation cost scales exponentially with leveltot, however, it is recommended to choose this parameter to be equal to $log_2(n)$, where $n$ is the total number of observations in the data set in Chen and Hanson's paper (https://www.sciencedirect.com/science/article/pii/S0167947312003945). Choosing a larger number may be appropriate if the data set has unusual features, but this is a research topic on its own. As a result, we've left leveltot to  default to $log_2(n)$, and allow it to be respecified if desired. 
 
-The final argument present is Ginv. Choosing the bins of the histogram to construct is not a trivial task. In general choosing bins is typically done by looking at the quantiles of some distribution. Holmes et al. (https://projecteuclid.org/euclid.ba/1422884976), have found centering and scaling the data before proceeding, and using the quantiles of a standard normal distribution to create quantiles to work well in simulations. However, they also encourage changing the distribution that quantiles are made on to fit the data set and situation appropriately. We adopt their approach and set the default Ginv to be the quantile function of a normal distribution. Chen and Hanson proceed by setting Ginv to be a normal distribution's quantile function, but with the mean and standard deviation corresponding to point estimates of the data set that supplied them ( https://www.sciencedirect.com/science/article/pii/S0167947312003945 ). 
+The final argument present is Ginv. Choosing the bins of the histogram to construct is not a trivial task. In general choosing bins is typically done by looking at the quantiles of some distribution. Holmes et al. (2015) (https://projecteuclid.org/euclid.ba/1422884976), have found centering and scaling the data before proceeding, and using the quantiles of a standard normal distribution to create quantiles to work well in simulations. However, they also encourage changing the distribution that quantiles are made on to fit the data set and situation appropriately. We adopt their approach and set the default Ginv to be the quantile function of a normal distribution. Chen and Hanson proceed by setting Ginv to be a normal distribution's quantile function, but with the mean and standard deviation corresponding to point estimates of the data set that supplied them ( Hanson and Chen, 2015 https://www.sciencedirect.com/science/article/pii/S0167947312003945 ). 
 
 The default supplied Ginv is the quantile function of a normal distribution with the mean equal to the mean of the data set and the standard deviation equal to the standard deviation of the data set. 
 
@@ -62,6 +62,8 @@ sampledraws = PolyaTreePredDraws(PTsample1, ndraw = 500)
 ```
 
 These are draws from Polya tree's predictive posterior, we can now plot a KDE or histogram of these draws to get an idea as to what the true density looks like.
+
+The process of drawing observations from the tree is actually quite slow...
 
 
 
@@ -84,7 +86,7 @@ It turns out doing something like this is a bandwidth selection method with simi
 
 To be fair to Polya tree, we also first illustrate the predictive posterior of CVBF. To draw samples from the predictive posterior, bandwidth samples should be drawn from the posterior, and the plugged into the KDE generated by the training set. To draw bandwidth samples from the posterior, we request the user tell us what the training set is and what the validation set is. Unlike Polya tree, the prior used is not conjugate, which makes drawing samples from the posterior difficult. There are methods to sample from the posterior when the posterior form isn't well known, but they require specification of tuning parameters.
 
-It's been noticed that the posterior for the bandwidth seems to appear almost normal. As a result, using an independent metropolis sampler with a normal proposal is one strategy to draw from the posterior, and it seems to be effective, although more research in general is required in that field. We can provide a good default for what the mean should be, and a default is provided for the standard deviation. While the default proposal mean will mostly be nice, we imagine the default proposal standard deviation to change depending on the density that is being dealt with. The user may have to experiment with what proposal standard deviation works well unfortunately.
+It's been noticed that the posterior for the bandwidth seems to appear almost normal. As a result, using an independent metropolis sampler with a normal proposal is one strategy to draw from the posterior, and it seems to be effective, although more research in general is required in that field. We can provide a good default for what the mean should be, and a default is provided for the standard deviation. While the default proposal mean will mostly be nice, we imagine the default proposal standard deviation to change depending on the density that is being dealt with. The user may have to experiment with what proposal standard deviation works well unfortunately. The proposal standard deviation can be altered by changing the value of propsd. The proposal mean can be altered by changing the starting value of startingbw.
 
 A more classic method to draw bandwidths is to use the Metropolis algorithm. However, doing this also requires setting some tuning parameters. While we can provide a good default for the starting mean, we again run into problems with giving a good default standard deviation for the proposal distribution. A poorly chosen standard deviation will result in slow mixing times in this case, but will return decent samples.
 
@@ -92,9 +94,9 @@ The ndraw corresponds to the number of unique draws that would be liked from dra
 
 A good independence Metropolis sampler tends to have much higher acceptance rates than a well chosen Metropolis algorithm sampler, but is more dependent on the tuning parameters. 
 
-If the user is less interested in how bandwidths are chosen from the posterior, we recommend just calling PredCVBFMHbw to get a list of bandwidths and relying on the default values. 
+If the user is less interested in how bandwidths are chosen from the posterior, we recommend just calling PredCVBFMHbw to get a list of bandwidths and relying on the default values. In this case, the only values that need to specified are ndraw, XT1, and XV1.
 
-Whatever the case, we now illustrate the methods to draw from the posterior bandwidth distribution.
+Whatever the case, we now illustrate the methods to draw from the posterior bandwidth distribution. We will rely on the default values to choose our proposal mean and standard deviation.
 
 ```{r Drawing bandwidth samples from CVBF, fig.width = 7, fig.height= 5}
 trainingindices1 = sample(1:600, size = 300)
@@ -123,7 +125,7 @@ The Metropolis algorithm seems to mix well, and looks like it explores a decent 
 
 An alternative to examining how well the posterior draws are is to look at the acceptance rates.
 
-The ideal Metropolis algorithm acceptance rate is around .24 under some conditions (https://arxiv.org/pdf/1704.04629.pdf). 
+The ideal Metropolis algorithm acceptance rate is around .24 under some conditions (there are many sources for this claim, we give 1) (https://arxiv.org/pdf/1704.04629.pdf). 
 
 Its harder to say what the optimal acceptance rate is for the independence sampler. Large amounts of acceptances are good, but you also want the chain to travel a somewhat wide area. As long as some rejections occur, we can say that the chain is attempting to explore the area, but failing in some places. So some rejections are good, but it should still be a significantly smaller percentage than the number of rejections from the Metropolis algorithm.
 
@@ -161,7 +163,7 @@ We first demonstrate how our package does the two sample test by using the Polya
 
 ##Testing using Polya tree
 
-The Polya tree test for checking if two samples share the same distribution was first proposed (to our knowledge), by Holmes et al. (https://projecteuclid.org/euclid.ba/1422884976).
+The Polya tree test for checking if two samples share the same distribution was first proposed (to our knowledge), by Holmes et al. (2015) (https://projecteuclid.org/euclid.ba/1422884976).
 
 To do testing using the Polya tree, you can either call the Polya tree object that was created using PolyaTreePriorLikCons. Alternatively, another function can be called that runs the test fully. We show both methods below.
 
@@ -193,11 +195,15 @@ The Polya tree test only really makes sense to perform the levels of the two Pol
 
 This is only a problem if the Polya tree test is run through two previously defined Polya trees. This is not a problem that will be run in to if the test itself is called directly, as the leveltot chosen is the same for both, as is the c tuning parameter. The leveltot, c, and Ginv, can be set as desired by using arguments in PolyaTreetest.
 
-The value returned from the functions returns the logBF of the full test, which can be interpreted as follows. If the log BF is positive, there's evidence that the distribution of the two tests are different. If the log BF is negative, there's evidence that the distribution of the two tests are the same. If the log BF is close to 0, then the test is inconclusive.  The function also returns a value called logBFcont, which gives the amount the log BF was contributed to by in different levels of the tree. Holmes et al. suggest that the contribution of the log Bayes factor should diminish as you go deeper in to the tree, and new levels should stop being formed when the contribution of the log Bayes factor seem to become tiny. Hanson and Chen suggested that a good default for this to occur is $log_2(n)$, where $n$ is the number of samples in the data set. This can be monitored and adjusted appropriately. 
+The value returned from the functions returns the logBF of the full test, which can be interpreted as follows. If the log BF is positive, there's evidence that the distribution of the two tests are different. If the log BF is negative, there's evidence that the distribution of the two tests are the same. If the log BF is close to 0, then the test is inconclusive. This is reflective of the Bayes factors presented. When the data sets had data come from the same distribution, the log Bayes factor was -2.6 while when the distributions differed, the log Bayes factor was 406.
+
+The function also returns a value called logBFcont, which gives the amount the log BF was contributed to by in different levels of the tree. Holmes et al. suggest that the contribution of the log Bayes factor should diminish as you go deeper in to the tree, and new levels should stop being formed when the contribution of the log Bayes factor seem to become tiny. Hanson and Chen suggested that a good default for this to occur is $log_2(n)$, where $n$ is the number of samples in the data set. This can be monitored and adjusted appropriately. 
 
 It should also be mentioned that the Ginv should be the same for both Polya trees. We don't check for this currently, because it can be tricky to test for this. This is not something that can potentially be a problem if PolyaTreetest is called, but is something that can occur if PolyaTreeBFcons is called with two PolyaTree models that relied on the default values for Ginv.
 
-By default, if a Bayesian test is required and there is fear there may be an error, simply call PolyaTreetest, and specify the two datasets. The defaults should work decently in all but pathological cases.
+By default, if a Bayesian test is required and there is fear there may be an error, simply call PolyaTreetest, and specify the two datasets. The defaults should work decently in all but pathological cases. 
+
+In the pathological cases, Ginv will need to be chosen creatively, and to our knowledge experimentation may be required to choose one in this case. Holmes et al. (2015) offer a test that empirically chooses a partition, but we do not provide it, as it should be even more computationally expensive then the current procedure, as it requires some quadrature method to evaluate an integral many times. In addition, under this test, consistency of the Bayes factor under the alternative distribution is currently uncertain.
 
 We now show the same test with the CVBF instead.
 
@@ -211,17 +217,21 @@ CVBF1$logBF
 
 CVBF2$logBF
 
+names(CVBF1)
+
 ```
+
+The logBF here has the same interpretation as the logBF in the Polya tree test. If it is above 0, and somewhat large, it gives evidence that the distribution of the two inputted data sets are different. Indeed, in the simulation, the log Bayes factor when both data sets are the same is -4.8257, and the log Bayes factor when the distributions differ is 200.13.
 
 CVBFtestrsplit returns the training_ids as well as a log Bayes factor. The log Bayes factor will change with different training and validation splits. Taking an average of them can result in a more stable log Bayes factor.
 
-The training_ids do not need to be provided, instead a seed can be provided to ensure reproducibility instead. The minimum input required to run the test are the data sets and some size they'd like the training set to be. 
+The training_ids do not need to be provided, instead a seed can be provided to ensure reproducibility instead. The minimum input required to run the test are the data sets and some size they'd like the training set to be. The training sets can be recovered by looking at train1_ids and train2_ids. Train1_ids corresponds to the first inputted dataset's training indices, and Train2_ids corresponds to the second inputted dataset's training indices.
 
 The larger the training set, the smaller the log Bayes factor, but the more likely the sign of the log Bayes factor is correct. Computation time is maximized if the training set size is a half of the data set, so the if the data set is large, the training set should either be most of the data set, or a very small portion of the data set. 
 
-We now present how these methods are used for screening for important variables. To do this currently, we look at the GISETTE data set. This data set was presented in NIPS, and contains features that corespond to pixel measurements of an image, and features that are meaningless (probes). The original data set itself was obtained from  https://archive.ics.uci.edu/ml/datasets/Gisette . For ease, it can be included by using the data command. For now, we'll show how to use our tests to screen for important variables.
+We now present how these methods are used for screening for important variables. To do this currently, we look at the GISETTE data set. This data set was presented in NIPS, and contains features that corespond to pixel measurements of an image, and features that are meaningless (probes). The original data set itself was obtained from  https://archive.ics.uci.edu/ml/datasets/Gisette . For ease, it can be included by using the data command. For now, we'll show how to use our tests to screen for important variables in parallel.
 
-```{r Applying These tests as a screening method for classification}
+```{r Applying These tests as a parallel screening method for classification, fig.width = 7, fig.height= 5}
 data(gisettetrainlabs)
 data(gisettetrainpreds)
 
@@ -255,7 +265,7 @@ hist(ImpVarsCVBF1$logBFlist)
 
 
 ```
-To use, put the matrix with all the predictors in to datasetX, and put a vector with an indicator corresponding to the classes in to datasetY. The method chosen determines the type of screening. Polya tree based screening is done if the method is "PT", and CVBF based screening is applied if the method is "CVBF". SIS is a type of screening that was introduced by Fan and LV (https://orfe.princeton.edu/~jqfan/papers/06/SIS.pdf). KS type screening was introduced 
+To use, put the matrix with all the predictors in to datasetX, and put a vector with an indicator corresponding to the classes in to datasetY. The method chosen determines the type of screening. Polya tree based screening is done if the method is "PT", and CVBF based screening is applied if the method is "CVBF". SIS is a type of screening that was introduced by Fan and LV (https://orfe.princeton.edu/~jqfan/papers/06/SIS.pdf). KS type screening was introduced by Qing and Zou in 2013.
 
 The parameters that were in place for PolyaTreetest, and CVBFtestrsplit can be added when assigned. Those behave like those mentioned in earlier sections. The leveltot can be changed from default, the c can be specified, and a Ginv (or quantile function) can be provided. Similarly, a training size, training indices, or a seed can be added.
 
@@ -268,3 +278,39 @@ It appears that the log BFs for Polya tree are all close to 0, which implies tha
 SIS based tests is unaffected by centering and scaling. In our experience, the KS test and CVBF don't seem affected much by it either. Choosing a quantile distribution for Polya Tree will be tricky though. It is extremely unlikey that all predictors will be centered in a similar area and have similar variance. To walk around this, the option PTscale exists, which centers and scales all the predictors in advance, so choosing a quantile distribution should be easier. It is set true by default, and currently only runs if the the Polya tree method is selected.
 
 If Ginv is not supplied for Polya Tree based screening, the Polya tree will by default choose a standard normal for quantiles for all predictors.
+
+A non-parallel version of this can be run as well. SIS and KS based screening will actually be faster on this type, unless the number of observations is huge. We illustrate the commands that run them now.
+
+
+```{r Applying These tests as a non-parallel screening method for classification, warning=FALSE, fig.width = 7, fig.height= 5}
+data(gisettetrainlabs)
+data(gisettetrainpreds)
+
+#There are also validation labels and validation predictors
+#Can be included via
+#data(gisettevalidlabs)
+#data(gisettevalidpreds)
+
+ImpVarsKS1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "KS")
+ImpVarsSIS1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "SIS")
+ImpVarsCVBF1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:20], datasetY = gisettetrainlabs[,1], method = "CVBF", trainsize1 = 2960, trainsize2 = 2960, seed = 200)
+ImpVarsPT1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:20], datasetY = gisettetrainlabs[,1], method = "PT")
+
+length(ImpVarsSIS1$varspicked)
+
+length(ImpVarsKS1$varspicked)
+
+length(ImpVarsPT1$varspicked)
+
+hist(ImpVarsPT1$logBFlist)
+
+length(ImpVarsCVBF1$varspicked)
+
+hist(ImpVarsCVBF1$logBFlist)
+
+
+```
+
+The arguments that have to be passed to SeqScreenVars are all the same as the arguments that have to be passed to ParScreenVars, the only difference is the number of cores does not need to be passed.
+
+The numbers for PT and CVBF are different, because we only ran this on 20 predictors. Parallelization allows a huge speed up for these two tests, so much so that we opted against running it for 500 because it takes a long time.

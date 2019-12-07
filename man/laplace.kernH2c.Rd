@@ -16,8 +16,17 @@ laplace.kernH2c(y, x, hhat, c)
 \item{c}{A constant that is equal to the log likelihood + log prior evaluated at the maximum}
 }
 \value{
-Evaluation of the CVBF marginal likelihood via Laplace Approximation.
+Evaluation of the CVBF marginal likelihood via Laplace Approximation. Also returns bandwidth that maximized log integrand, and hessian of log integrand at maximum.
 }
 \description{
 Compute Marginal Likelihoods for CVBF
+}
+\examples{
+dataset1 = rnorm(100)
+DT = dataset1[1:50]
+DV = dataset1[51:100]
+likvec = function(h) {sum(log(HallKernel(h,datagen2 = DT, x = DT)))}
+bwlikcy = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+ExpectedKernML2 = laplace.kernH2c(y = DT, x = DV, hhat = bwlikcy$maximum, c= bwlikcy$objective + logpriorused(h = bwlikcy$maximum, hhat = bwlikcy$maximum))
+ExpectedKernML2
 }

@@ -21,3 +21,9 @@ Evaluation of the integrand at a particular log likelihood value.
 \description{
 Compute log of the integrand of the Marginal likelihood for CVBF
 }
+\examples{
+dataset1 = rnorm(100)
+DT = dataset1[1:50]
+DV = dataset1[51:100]
+logintegrand.Hall(.01, DT, DV, .1)
+}

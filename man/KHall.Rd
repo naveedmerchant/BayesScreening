@@ -2,7 +2,7 @@
 % Please edit documentation in R/CVBFFunctions.R
 \name{KHall}
 \alias{KHall}
-\title{Title Hall Kernel}
+\title{Title Hall Kernel evaluation}
 \usage{
 KHall(x)
 }
@@ -11,8 +11,11 @@ KHall(x)
 }
 \value{
 Evaluation of K(X), where K is a heavy tailed kernel. For more information on K(x), see
- K_0 on https://www.jstor.org/stable/2241687?casa_token=MYvQinlSlloAAAAA:QQdoTOxh5bfOv7RfessNXbkL37CRM0_TC1UipmC2kVqOB9oVVFaPh_sqzejtMKOpLUCOdSX-LRhpjcb1hk9ggrG8GDePNfk3k-0XsLzbXa3qbGP-Pbk&seq=7#metadata_info_tab_contents
+ K_0 on Hall's paper on Kullback Leibler loss (Annals of Statistics 1957)
 }
 \description{
-Title Hall Kernel
+Title Hall Kernel evaluation
+}
+\examples{
+Khall(.1)
 }

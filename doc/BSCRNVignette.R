@@ -91,8 +91,10 @@ CVBF1$logBF
 
 CVBF2$logBF
 
+names(CVBF1)
 
-## ----Applying These tests as a screening method for classification------------
+
+## ----Applying These tests as a parallel screening method for classification, fig.width = 7, fig.height= 5----
 data(gisettetrainlabs)
 data(gisettetrainpreds)
 
@@ -122,6 +124,34 @@ hist(ImpVarsPT1$logBFlist)
 #
 ImpVarsCVBF1 = ParScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = nworkers / 2, trainsize1 = 2960, trainsize2 = 2960, seed = 200)
 length(ImpVarsCVBF1$varspicked)
+hist(ImpVarsCVBF1$logBFlist)
+
+
+
+## ----Applying These tests as a non-parallel screening method for classification, warning=FALSE, fig.width = 7, fig.height= 5----
+data(gisettetrainlabs)
+data(gisettetrainpreds)
+
+#There are also validation labels and validation predictors
+#Can be included via
+#data(gisettevalidlabs)
+#data(gisettevalidpreds)
+
+ImpVarsKS1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "KS")
+ImpVarsSIS1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:500], datasetY = gisettetrainlabs[,1], method = "SIS")
+ImpVarsCVBF1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:20], datasetY = gisettetrainlabs[,1], method = "CVBF", trainsize1 = 2960, trainsize2 = 2960, seed = 200)
+ImpVarsPT1 = SeqScreenVars(datasetX = gisettetrainpreds[, 1:20], datasetY = gisettetrainlabs[,1], method = "PT")
+
+length(ImpVarsSIS1$varspicked)
+
+length(ImpVarsKS1$varspicked)
+
+length(ImpVarsPT1$varspicked)
+
+hist(ImpVarsPT1$logBFlist)
+
+length(ImpVarsCVBF1$varspicked)
+
 hist(ImpVarsCVBF1$logBFlist)
 
 

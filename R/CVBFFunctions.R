@@ -26,6 +26,10 @@ logpriorused <- function(h,hhat)
 #' @export
 #'
 #' @examples
+#' dataset1 = rnorm(100)
+#' DT = dataset1[1:50]
+#' DV = dataset1[51:100]
+#' loglike.Khall(.01, DT, DV)
 loglike.KHall=function(h, y, x){
   
   n = length(x)
@@ -45,48 +49,22 @@ loglike.KHall=function(h, y, x){
   return(-llike)
 }
 
-#' Title Hall Kernel
+#' Title Hall Kernel evaluation
 #'
 #' @param x The parameter to evaluate the Hall Kernel density on 
 #'
 #' @return Evaluation of K(X), where K is a heavy tailed kernel. For more information on K(x), see
-#'  K_0 on https://www.jstor.org/stable/2241687?casa_token=MYvQinlSlloAAAAA:QQdoTOxh5bfOv7RfessNXbkL37CRM0_TC1UipmC2kVqOB9oVVFaPh_sqzejtMKOpLUCOdSX-LRhpjcb1hk9ggrG8GDePNfk3k-0XsLzbXa3qbGP-Pbk&seq=7#metadata_info_tab_contents
+#'  K_0 on Hall's paper on Kullback Leibler loss (Annals of Statistics 1957)
 #' @export
 #'
 #' @examples
+#' Khall(.1)
 KHall=function(x){
   
   con = sqrt(8 * pi * exp(1)) * pnorm(1)
   K=exp(-0.5 * (log(1 + abs(x)))^2) / con
   return(K)
 }
-
-
-
-#' Compute integrand of the Marginal likelihood for the CVBF
-#'
-#' @param h Bandwidth parameter, this is what the integral is with respect to.
-#' @param y Validation set
-#' @param x Training set
-#' @param cons The integrand is typically too big to easily evaluate, need a constant to help evaluate it. Typically just use the log version of this function instead
-#' @param hhat The parameter to center the prior at, recommended to be maximizer of the likelihood
-#'
-#' @return
-#' @export
-#'
-#' @examples
-integrand.Hall=function(h,y,x,cons,hhat){
-  
-  n=length(x)
-  beta=hhat
-  Prior=(2*beta / sqrt(2*pi)) * exp(-beta^2/h^2) / h^2
-  arg=-loglike.KHall(h,y,x)-cons
-  arg[arg>700]=700
-  f=exp(arg)*Prior
-  return(f)
-}
-
-
 
 #' Compute log of the integrand of the Marginal likelihood for CVBF
 #'
@@ -99,6 +77,10 @@ integrand.Hall=function(h,y,x,cons,hhat){
 #' @export
 #'
 #' @examples
+#' dataset1 = rnorm(100)
+#' DT = dataset1[1:50]
+#' DV = dataset1[51:100]
+#' logintegrand.Hall(.01, DT, DV, .1)
 logintegrand.Hall=function(h, y, x, hhat){
   
   n = length(x)
@@ -117,10 +99,18 @@ logintegrand.Hall=function(h, y, x, hhat){
 #' @param hhat Bandwidth parameter that maximizes the log likelihood
 #' @param c A constant that is equal to the log likelihood + log prior evaluated at the maximum
 #'
-#' @return Evaluation of the CVBF marginal likelihood via Laplace Approximation.
+#' @return Evaluation of the CVBF marginal likelihood via Laplace Approximation. Also returns bandwidth that maximized log integrand, and hessian of log integrand at maximum.
 #' @export
 #'
 #' @examples
+#' dataset1 = rnorm(100)
+#' DT = dataset1[1:50]
+#' DV = dataset1[51:100]
+#' likvec = function(h) {sum(log(HallKernel(h,datagen2 = DT, x = DT)))}
+#' bwlikcy = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+#' ExpectedKernML2 = laplace.kernH2c(y = DT, x = DV, hhat = bwlikcy$maximum, c= bwlikcy$objective + logpriorused(h = bwlikcy$maximum, hhat = bwlikcy$maximum))
+#' ExpectedKernML2
+
 laplace.kernH2c = function(y, x, hhat, c){
   
   n = length(x)
@@ -215,6 +205,7 @@ CVBFtestrsplit = function(dataset1, dataset2, trainsize1, trainsize2, seed = NUL
 #' @export
 #'
 #' @examples
+#' 
 HallKernel = function(h,datagen2,x)
 {
   sum = 0
@@ -390,7 +381,14 @@ PredCVBFIndepMHbw = function(ndraw = 100, propsd = NULL, maxIter = 10000, XT1, X
 #' @export
 #'
 #' @examples
-#' 
+#' set.seed(500)
+#' datasetsample1 = rnorm(600)
+#' trainingindices1 = sample(1:600, size = 300)
+#' XT1 = datasetsample1[trainingindices1]
+#' XV1 = datasetsample1[-trainingindices1]
+#' predbwvec1 = PredCVBFIndepMHbw(ndraw = 500, maxIter = 5000, XT1 = XT1, XV1 = XV1)
+#' predpost = PredCVBFDens(predbwvec1, XT1)
+#' plot(seq(from = -3, to = 3, by = .1), Predpost(predbwvec1, XT1)(seq(from = -3, to = 3, by = .1)))
 #' 
 PredCVBFDens = function(bwvec, XT1)
 {

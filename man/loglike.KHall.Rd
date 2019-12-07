@@ -19,3 +19,9 @@ loglike.KHall(h, y, x)
 \description{
 Evaluate a log likelihood using the Hall Kernel
 }
+\examples{
+dataset1 = rnorm(100)
+DT = dataset1[1:50]
+DV = dataset1[51:100]
+loglike.Khall(.01, DT, DV)
+}
