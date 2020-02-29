@@ -140,3 +140,55 @@
 # # ImpVarsCVBF2 = ParScreenVars(datasetX = gisettetrainpreds[,1:40], datasetY = gisettetrainlabs[,1], method = "CVBF", ncores = 10, trainsize1 = 2960, trainsize2 = 2960, seed = 100)
 # # length(ImpVarsCVBF2)
 # # #Suprisingly (or unsuprisingly) changing seed alters which vars are picked
+
+# set.seed(100)
+# ds1 = rnorm(100)
+# ds2 = rnorm(100)
+# 
+# PolyaTreetest(datasetX = ds1, datasetY = ds2, Ginv = qnorm, c = 1, leveltot = 9)
+# 
+# PT1 = PolyaTreePriorLikCons(datasetX = ds1, Ginv = qnorm, c = 1, leveltot = 9)
+# PT2 = PolyaTreePriorLikCons(datasetX = ds2, Ginv = qnorm, c = 1, leveltot = 9)
+# 
+# PolyaTreeBFcons(PT1,PT2)
+# 
+# PolyaTreeBFcons2 = function(PolyaTreePriorLik1, PolyaTreePriorLik2)
+# {
+#   if(PolyaTreePriorLik1$leveltot != PolyaTreePriorLik2$leveltot)
+#   {
+#     stop("Polya Trees go down to different depths, this test is inappropriate")
+#   }
+#   else{
+#     leveltot = PolyaTreePriorLik1$leveltot
+#   }
+#   
+#   if(PolyaTreePriorLik1$c != PolyaTreePriorLik2$c)
+#   {
+#     stop("Polya Trees are generated with different prior, test is possible, but BF is meaningless")
+#   }
+#   else{
+#     c = PolyaTreePriorLik1$c
+#   }
+#   #browser()
+#   bj = rep(0, times = leveltot)
+#   for(j in 1:leveltot)
+#   {
+#     k = 1
+#     #browser()
+#     for(D in 1:(length(PolyaTreePriorLik1$alphalist[[j]]) - 1))
+#     {
+#       bj[j] = bj[j] + lbeta(PolyaTreePriorLik1$alphalist[[j]][k],PolyaTreePriorLik1$alphalist[[j]][k+1]) +
+#         lbeta(PolyaTreePriorLik1$alphalist[[j]][k] + PolyaTreePriorLik1$splitlist[[j]][k] +
+#                 PolyaTreePriorLik2$splitlist[[j]][k],PolyaTreePriorLik1$alphalist[[j]][k+1] +
+#                 PolyaTreePriorLik1$splitlist[[j]][k+1] + PolyaTreePriorLik2$splitlist[[j]][k+1] ) -
+#         lbeta(PolyaTreePriorLik1$alphalist[[j]][k] + PolyaTreePriorLik1$splitlist[[j]][k], PolyaTreePriorLik1$alphalist[[j]][k+1] + PolyaTreePriorLik1$splitlist[[j]][k+1]) -
+#         lbeta(PolyaTreePriorLik1$alphalist[[j]][k] + PolyaTreePriorLik2$splitlist[[j]][k], PolyaTreePriorLik1$alphalist[[j]][k+1] + PolyaTreePriorLik2$splitlist[[j]][k+1])
+#       k = k + 2
+#       if(k+1 > (length(PolyaTreePriorLik1$alphalist[[j]])))
+#         break
+#     }
+#   }
+#   return(list(logBF = -sum(bj), logBFcont = -bj))
+# }
+# 
+# PolyaTreeBFcons2(PT1,PT2)

@@ -106,15 +106,18 @@ PolyaTreetest <- function(datasetX, datasetY, Ginv = NULL, c = NULL, leveltot = 
   
   for(j in 1:leveltot)
   {
+    k = 1
     for(D in 1:(length(alphalist[[j]]) - 1))
     {
-      bj[j] = bj[j] + lbeta(alphalist[[j]][D],alphalist[[j]][D+1]) +
-        lbeta(alphalist[[j]][D] + splitlist[[j]][D] +
-                splitlist2[[j]][D],alphalist[[j]][D+1] +
-                splitlist[[j]][D+1] + splitlist2[[j]][D+1] ) -
-        lbeta(alphalist[[j]][D] + splitlist[[j]][D], alphalist[[j]][D+1] + splitlist[[j]][D+1]) -
-        lbeta(alphalist[[j]][D] + splitlist2[[j]][D], alphalist[[j]][D+1] + splitlist2[[j]][D+1])
-      
+      bj[j] = bj[j] + lbeta(alphalist[[j]][k],alphalist[[j]][k+1]) +
+        lbeta(alphalist[[j]][k] + splitlist[[j]][k] +
+                splitlist2[[j]][k],alphalist[[j]][k+1] +
+                splitlist[[j]][k+1] + splitlist2[[j]][k+1] ) -
+        lbeta(alphalist[[j]][k] + splitlist[[j]][k], alphalist[[j]][k+1] + splitlist[[j]][k+1]) -
+        lbeta(alphalist[[j]][k] + splitlist2[[j]][k], alphalist[[j]][k+1] + splitlist2[[j]][k+1])
+      k = k + 2
+      if(k + 1 > (length(alphalist[[j]])))
+        break
     }
   }
   return(list(logBF = -sum(bj), logBFcont =  -bj))
@@ -205,7 +208,7 @@ PolyaTreeBFcons <- function(PolyaTreePriorLik1, PolyaTreePriorLik2)
   
   if(PolyaTreePriorLik1$c != PolyaTreePriorLik2$c)
   {
-    stop("Polya Trees are generated with different prior, test is possible, but BF is meaningless")
+    stop("Polya Trees are generated with different prior, test is possible, but BF has less meaning")
   }
   else{
     c = PolyaTreePriorLik1$c
@@ -214,15 +217,18 @@ PolyaTreeBFcons <- function(PolyaTreePriorLik1, PolyaTreePriorLik2)
   bj = rep(0, times = leveltot)
   for(j in 1:leveltot)
   {
+    k = 1
     for(D in 1:(length(PolyaTreePriorLik1$alphalist[[j]]) - 1))
     {
-      bj[j] = bj[j] + lbeta(PolyaTreePriorLik1$alphalist[[j]][D],PolyaTreePriorLik1$alphalist[[j]][D+1]) +
-        lbeta(PolyaTreePriorLik1$alphalist[[j]][D] + PolyaTreePriorLik1$splitlist[[j]][D] +
-                PolyaTreePriorLik2$splitlist[[j]][D],PolyaTreePriorLik1$alphalist[[j]][D+1] +
-                PolyaTreePriorLik1$splitlist[[j]][D+1] + PolyaTreePriorLik2$splitlist[[j]][D+1] ) -
-        lbeta(PolyaTreePriorLik1$alphalist[[j]][D] + PolyaTreePriorLik1$splitlist[[j]][D], PolyaTreePriorLik1$alphalist[[j]][D+1] + PolyaTreePriorLik1$splitlist[[j]][D+1]) -
-        lbeta(PolyaTreePriorLik1$alphalist[[j]][D] + PolyaTreePriorLik2$splitlist[[j]][D], PolyaTreePriorLik1$alphalist[[j]][D+1] + PolyaTreePriorLik2$splitlist[[j]][D+1])
-
+      bj[j] = bj[j] + lbeta(PolyaTreePriorLik1$alphalist[[j]][k],PolyaTreePriorLik1$alphalist[[j]][k+1]) +
+        lbeta(PolyaTreePriorLik1$alphalist[[j]][k] + PolyaTreePriorLik1$splitlist[[j]][k] +
+                PolyaTreePriorLik2$splitlist[[j]][k],PolyaTreePriorLik1$alphalist[[j]][k+1] +
+                PolyaTreePriorLik1$splitlist[[j]][k+1] + PolyaTreePriorLik2$splitlist[[j]][k+1] ) -
+        lbeta(PolyaTreePriorLik1$alphalist[[j]][k] + PolyaTreePriorLik1$splitlist[[j]][k], PolyaTreePriorLik1$alphalist[[j]][k+1] + PolyaTreePriorLik1$splitlist[[j]][k+1]) -
+        lbeta(PolyaTreePriorLik1$alphalist[[j]][k] + PolyaTreePriorLik2$splitlist[[j]][k], PolyaTreePriorLik1$alphalist[[j]][k+1] + PolyaTreePriorLik2$splitlist[[j]][k+1])
+      k = k + 2
+      if(k+1 > (length(PolyaTreePriorLik1$alphalist[[j]])))
+        break
     }
   }
   return(list(logBF = -sum(bj), logBFcont = -bj))
