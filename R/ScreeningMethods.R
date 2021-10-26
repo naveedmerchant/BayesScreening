@@ -120,8 +120,21 @@ ParScreenVars <- function(datasetX, datasetY, method = "SIS", ncores = 1, cutoff
     stopCluster(cl)
     ImportantVars = list(logBFlist = logBFlist, varspicked = which(logBFlist > cutoff))
     #ImportantVars = which(logBFlist > cutoff)
-  }
-  else{
+  }else if(method == "ALB"){
+    if(is.null(cutoff))
+    {
+      cutoff = 0
+    }
+    cl <- makeCluster(ncores) 
+    registerDoParallel(cl)
+    ALBlist <- foreach(j=1:p, .combine=cbind, .export = c("LCV_h", "HallKernel", "leaveoneoutBFLR2"), .packages = "rootSolve") %dopar% {
+      tempval = leaveoneoutBFLR2(x = datasetX[Class0ind, j], y = datasetX[-Class0ind, j], bw = NULL, objbw = NULL, option = 2)
+      tempMatrix = matrix(data = c(tempval$BF, tempval$bw, tempval$objbw), nrow = 3, ncol = 1)
+      tempMatrix #Equivalent to logBFlist = cbind(logBFlist, tempMatrix)
+    }
+    stopCluster(cl)
+    ImportantVars = list(ALBlist = ALBlist[1,], bws = ALBlist[2,], objbws = ALBlist[3,], varspicked = which(ALBlist[1,] > cutoff))
+  } else{
     stop("Method entered does not match with screening methods supported. Please recheck spelling or pick an option from 'SIS', 'KS', 'CVBF', or 'PT'")
   }
   return(ImportantVars)
@@ -232,7 +245,7 @@ SeqScreenVars <- function(datasetX, datasetY, method = "SIS", cutoff = NULL, tra
     }
     ImportantVars = list(logBFlist = logBFlist, varspicked = which(logBFlist > cutoff))
     #ImportantVars = which(logBFlist > cutoff)
-  }
+  } 
   else{
     stop("Method entered does not match with screening methods supported. Please recheck spelling or pick an option from 'SIS', 'KS', 'CVBF', or 'PT'")
   }
