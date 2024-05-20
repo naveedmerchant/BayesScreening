@@ -1,0 +1,475 @@
+---
+title: "MeanDiffBayesSimvsttestavg"
+author: "Naveed"
+date: "9/21/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Mean Diff Comparison to t-test
+
+We are partially concerned with how well our test does on a simple location shift.
+
+We examine how well it does at distinguising the standard normal from a standard normal whose mean is p and varies from 0-6 (it has the same sd but a different mean)
+
+```{r cars}
+library(parallel)
+library(ggplot2)
+source("MarginalLikIntfunctions.R")
+source("Laplacefunction.R")
+set.seed(1000)
+
+p = runif(500,0,6)
+dlength = 10
+
+dataset1 <- rnorm(dlength)
+dataset2 <- matrix(data = NA, nrow = length(p),ncol = dlength)
+for(i in 1:length(p))
+{
+  dataset2[i,] = rnorm(dlength, mean = p[i], sd = 1)
+}
+XT1 <- dataset1[1:(length(dataset1)*.3)]
+XV1 <- dataset1[-(1:(length(dataset1)*.3))]
+
+likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+ExpectedKernML1 = laplace.kernH(y = XT1, x = XV1, hhat = bwlik$maximum)
+
+CL1 <- makeCluster(8)
+clusterExport(cl = CL1, list("XT1","XV1","dataset2","logmarg.specialkernMCimport", "ExpectedKernML1", "dlength", "logSumExp", "HallKernel", "laplace.kernH2", "logintegrand.Hall", "loglike.KHall", "KHall", "hessian", "dataset1"), envir = environment())
+result <- parApply(cl = CL1, dataset2[1:500,], 1, FUN = function(x){
+  BFi = 0
+  for(j in 1:30)
+  {
+    trainingset = sample(1:dlength, size = dlength*.3)
+    XT1 = dataset1[trainingset]
+    XV1 = dataset1[-trainingset]
+    XT2 = x[trainingset]
+    XV2 = x[-trainingset] 
+    likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+    bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+    ExpectedKernML1 = laplace.kernH2(y = XT1, x = XV1, hhat = bwlik$maximum)
+    
+    likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT2, x = XV2)))}
+    bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+    ExpectedKernML2 = laplace.kernH2(y = XT2, x = XV2, hhat = bwlik$maximum)
+    
+    likvec2 = function(h) {sum(log(HallKernel(h,datagen2 = c(XT1,XT2), x = c(XV1,XV2))))}
+    bwlik2 = optimize(f = function(h){  likvec2(h)}, lower = 0, upper = 10, maximum = TRUE)
+    
+    ExpectedKernMLcomb = laplace.kernH2(y = c(XT1,XT2), x = c(XV1,XV2), hhat = bwlik2$maximum)
+    
+    BFi = BFi + ExpectedKernML1[1] + ExpectedKernML2[1] - ExpectedKernMLcomb[1]
+  }
+  BFi = BFi / 30
+  return(BFi)
+})
+stopCluster(CL1)
+
+
+# lm4 <- lm(result~p[1:500])
+# lw1 = loess(result~p)
+# j <- order(p)
+# plot(p,result, xlab = "p", ylab = "Log Bayes Factor", pch = '*')
+# lines(p[j],lw1$fitted[j],col="red",lwd=3)
+# 
+# abline(a = 0, b = 0)
+
+#abline(lm4, col = "blue")
+
+
+
+dfCVBF = data.frame(logBF = result, p = p)
+plot1 = ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE)
+plot1
+ggsave("BayesSimPlots/CVBFmeandiff.pdf",plot = plot1, device = "pdf")
+
+sorteddfCVBF = dfCVBF[order(dfCVBF$p),]
+nonparvarest = 0
+for(j in 1:(nrow(sorteddfCVBF) - 1) )
+{
+  nonparvarest = nonparvarest + (sorteddfCVBF[j + 1, 1] - sorteddfCVBF[j, 1])^2
+}
+nonparvarest = nonparvarest / (2* nrow(sorteddfCVBF))
+
+#Variance estimate
+
+nonparvarest
+
+#Standard deviation estimate
+
+sqrt(nonparvarest)
+
+kslist = c()
+for(j in 1:500)
+{
+  kslist[j] =  t.test(dataset1,dataset2[j,])$p.value
+}
+# plot(p[1:500],log(kslist), xlab = "p", ylab = "p-values from KS test", pch = '*')
+# abline(a=log(0.05),b=0, col = "blue")
+
+
+Blist = c()
+e = exp(1)
+for(j in 1:500)
+{
+  if(kslist[j] < 1/e)
+  {
+    Blist[j] = 1 / (-e * kslist[j] * log(kslist[j]))
+  }
+  else{
+    Blist[j] = 1
+  }
+  if(kslist[j] == 0)
+  {
+    Blist[j] = Inf
+  }
+}
+Blist = log(Blist)
+
+dfKS = data.frame(logks = log(kslist), p = p, logB = Blist)
+
+ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+
+ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+
+sum(Blist == 0)
+
+#This is 99
+
+plot1 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-70, 50)) + geom_smooth(se = FALSE)
+
+#ggsave("BayesSimPlots/tbmeandiff.pdf", plot = plot1, device = "pdf")
+
+dfKS10 = dfKS
+
+dfCVBF10 = dfCVBF
+
+```
+
+
+```{r}
+
+p = runif(500,0,6)
+dlength = 30
+
+dataset1 <- rnorm(dlength)
+dataset2 <- matrix(data = NA, nrow = length(p),ncol = dlength)
+for(i in 1:length(p))
+{
+  dataset2[i,] = rnorm(dlength, mean = p[i], sd = 1)
+}
+XT1 <- dataset1[1:(length(dataset1)*.3)]
+XV1 <- dataset1[-(1:(length(dataset1)*.3))]
+
+likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+ExpectedKernML1 = laplace.kernH(y = XT1, x = XV1, hhat = bwlik$maximum)
+
+CL1 <- makeCluster(8)
+clusterExport(cl = CL1, list("XT1","XV1","dataset2","logmarg.specialkernMCimport", "ExpectedKernML1", "dlength", "logSumExp", "HallKernel", "laplace.kernH2", "logintegrand.Hall", "loglike.KHall", "KHall", "hessian", "dataset1"), envir = environment())
+result <- parApply(cl = CL1, dataset2[1:500,], 1, FUN = function(x){
+  BFi = 0
+  for(j in 1:30)
+  {
+    trainingset = sample(1:dlength, size = dlength*.3)
+    XT1 = dataset1[trainingset]
+    XV1 = dataset1[-trainingset]
+    XT2 = x[trainingset]
+    XV2 = x[-trainingset] 
+    likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+    bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+    ExpectedKernML1 = laplace.kernH2(y = XT1, x = XV1, hhat = bwlik$maximum)
+    
+    likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT2, x = XV2)))}
+    bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+    ExpectedKernML2 = laplace.kernH2(y = XT2, x = XV2, hhat = bwlik$maximum)
+    
+    likvec2 = function(h) {sum(log(HallKernel(h,datagen2 = c(XT1,XT2), x = c(XV1,XV2))))}
+    bwlik2 = optimize(f = function(h){  likvec2(h)}, lower = 0, upper = 10, maximum = TRUE)
+    
+    ExpectedKernMLcomb = laplace.kernH2(y = c(XT1,XT2), x = c(XV1,XV2), hhat = bwlik2$maximum)
+    
+    BFi = BFi + ExpectedKernML1[1] + ExpectedKernML2[1] - ExpectedKernMLcomb[1]
+  }
+  BFi = BFi / 30
+  return(BFi)
+})
+stopCluster(CL1)
+
+
+# lm4 <- lm(result~p[1:500])
+# lw1 = loess(result~p)
+# j <- order(p)
+# plot(p,result, xlab = "p", ylab = "Log Bayes Factor", pch = '*')
+# lines(p[j],lw1$fitted[j],col="red",lwd=3)
+# 
+# abline(a = 0, b = 0)
+
+#abline(lm4, col = "blue")
+
+
+
+dfCVBF = data.frame(logBF = result, p = p)
+plot1 = ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE)
+plot1
+ggsave("BayesSimPlots/CVBFmeandiff.pdf",plot = plot1, device = "pdf")
+
+sorteddfCVBF = dfCVBF[order(dfCVBF$p),]
+nonparvarest = 0
+for(j in 1:(nrow(sorteddfCVBF) - 1) )
+{
+  nonparvarest = nonparvarest + (sorteddfCVBF[j + 1, 1] - sorteddfCVBF[j, 1])^2
+}
+nonparvarest = nonparvarest / (2* nrow(sorteddfCVBF))
+
+#Variance estimate
+
+nonparvarest
+
+#Standard deviation estimate
+
+sqrt(nonparvarest)
+
+kslist = c()
+for(j in 1:500)
+{
+  kslist[j] =  t.test(dataset1,dataset2[j,])$p.value
+}
+# plot(p[1:500],log(kslist), xlab = "p", ylab = "p-values from KS test", pch = '*')
+# abline(a=log(0.05),b=0, col = "blue")
+
+
+Blist = c()
+e = exp(1)
+for(j in 1:500)
+{
+  if(kslist[j] < 1/e)
+  {
+    Blist[j] = 1 / (-e * kslist[j] * log(kslist[j]))
+  }
+  else{
+    Blist[j] = 1
+  }
+  if(kslist[j] == 0)
+  {
+    Blist[j] = Inf
+  }
+}
+Blist = log(Blist)
+
+dfKS = data.frame(logks = log(kslist), p = p, logB = Blist)
+
+ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+
+ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+
+sum(Blist == 0)
+
+#This is 99
+
+plot1 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-70, 50)) + geom_smooth(se = FALSE)
+
+#ggsave("BayesSimPlots/tbmeandiff.pdf", plot = plot1, device = "pdf")
+
+dfKS30 = dfKS
+
+dfCVBF30 = dfCVBF
+
+```
+
+Comparing this to Polya Tree with a normal base distribution.
+
+```{r}
+p = runif(500,0,6)
+dlength = 50
+
+dataset1 <- rnorm(dlength)
+dataset2 <- matrix(data = NA, nrow = length(p),ncol = dlength)
+for(i in 1:length(p))
+{
+  dataset2[i,] = rnorm(dlength, mean = p[i], sd = 1)
+}
+XT1 <- dataset1[1:(length(dataset1)*.3)]
+XV1 <- dataset1[-(1:(length(dataset1)*.3))]
+
+likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+ExpectedKernML1 = laplace.kernH(y = XT1, x = XV1, hhat = bwlik$maximum)
+
+CL1 <- makeCluster(8)
+clusterExport(cl = CL1, list("XT1","XV1","dataset2","logmarg.specialkernMCimport", "ExpectedKernML1", "dlength", "logSumExp", "HallKernel", "laplace.kernH2", "logintegrand.Hall", "loglike.KHall", "KHall", "hessian", "dataset1"), envir = environment())
+result <- parApply(cl = CL1, dataset2[1:500,], 1, FUN = function(x){
+  BFi = 0
+  for(j in 1:30)
+  {
+    trainingset = sample(1:dlength, size = dlength*.3)
+    XT1 = dataset1[trainingset]
+    XV1 = dataset1[-trainingset]
+    XT2 = x[trainingset]
+    XV2 = x[-trainingset] 
+    likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+    bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+    ExpectedKernML1 = laplace.kernH2(y = XT1, x = XV1, hhat = bwlik$maximum)
+    
+    likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT2, x = XV2)))}
+    bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+    ExpectedKernML2 = laplace.kernH2(y = XT2, x = XV2, hhat = bwlik$maximum)
+    
+    likvec2 = function(h) {sum(log(HallKernel(h,datagen2 = c(XT1,XT2), x = c(XV1,XV2))))}
+    bwlik2 = optimize(f = function(h){  likvec2(h)}, lower = 0, upper = 10, maximum = TRUE)
+    
+    ExpectedKernMLcomb = laplace.kernH2(y = c(XT1,XT2), x = c(XV1,XV2), hhat = bwlik2$maximum)
+    
+    BFi = BFi + ExpectedKernML1[1] + ExpectedKernML2[1] - ExpectedKernMLcomb[1]
+  }
+  BFi = BFi / 30
+  return(BFi)
+})
+stopCluster(CL1)
+
+
+# lm4 <- lm(result~p[1:500])
+# lw1 = loess(result~p)
+# j <- order(p)
+# plot(p,result, xlab = "p", ylab = "Log Bayes Factor", pch = '*')
+# lines(p[j],lw1$fitted[j],col="red",lwd=3)
+# 
+# abline(a = 0, b = 0)
+
+#abline(lm4, col = "blue")
+
+
+
+dfCVBF = data.frame(logBF = result, p = p)
+plot1 = ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE)
+plot1
+ggsave("BayesSimPlots/CVBFmeandiff.pdf",plot = plot1, device = "pdf")
+
+sorteddfCVBF = dfCVBF[order(dfCVBF$p),]
+nonparvarest = 0
+for(j in 1:(nrow(sorteddfCVBF) - 1) )
+{
+  nonparvarest = nonparvarest + (sorteddfCVBF[j + 1, 1] - sorteddfCVBF[j, 1])^2
+}
+nonparvarest = nonparvarest / (2* nrow(sorteddfCVBF))
+
+#Variance estimate
+
+nonparvarest
+
+#Standard deviation estimate
+
+sqrt(nonparvarest)
+
+kslist = c()
+for(j in 1:500)
+{
+  kslist[j] =  t.test(dataset1,dataset2[j,])$p.value
+}
+# plot(p[1:500],log(kslist), xlab = "p", ylab = "p-values from KS test", pch = '*')
+# abline(a=log(0.05),b=0, col = "blue")
+
+
+Blist = c()
+e = exp(1)
+for(j in 1:500)
+{
+  if(kslist[j] < 1/e)
+  {
+    Blist[j] = 1 / (-e * kslist[j] * log(kslist[j]))
+  }
+  else{
+    Blist[j] = 1
+  }
+  if(kslist[j] == 0)
+  {
+    Blist[j] = Inf
+  }
+}
+Blist = log(Blist)
+
+dfKS = data.frame(logks = log(kslist), p = p, logB = Blist)
+
+ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+
+ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+
+sum(Blist == 0)
+
+#This is 99
+
+plot1 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-70, 50)) + geom_smooth(se = FALSE)
+
+#ggsave("BayesSimPlots/tbmeandiff.pdf", plot = plot1, device = "pdf")
+
+dfKS50 = dfKS
+
+dfCVBF50 = dfCVBF
+
+```
+
+
+```{r}
+
+ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+
+ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+
+dfall10 = data.frame(p_10 = dfKS10$p, p_30 = dfKS30$p, p_50 = dfKS50$p, logB_10 = dfKS10$logB, logB_30 = dfKS30$logB,
+           logB_50 = dfKS50$logB, CVBF_10 = dfCVBF10$logBF, CVBF_30 = dfCVBF30$logBF,  CVBF_50 = dfCVBF50$logBF)
+
+colorBlindGrey8   <- c("#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#009E73", "#56B4E9")
+colors <- c("CVBF_10"=colorBlindGrey8[1], "CVBF_30"=colorBlindGrey8[2], "CVBF_50"=colorBlindGrey8[3], "logB_10" = colorBlindGrey8[4], "logB_30" = colorBlindGrey8[5], "logB_50" = colorBlindGrey8[6])
+
+
+plot1 = ggplot(data = dfall10) +
+  geom_smooth(aes(p_10, CVBF_10, color = "CVBF_10")) +
+  # geom_point(aes(p, PTC), color = "purple") +
+  # geom_point(aes(p, PTN), color = "green") +
+  # geom_point(aes(p, logKSb), color = "red") +
+  geom_smooth(aes(p_30, CVBF_30, color = "CVBF_30"), linetype = 1, se = FALSE) +
+  geom_smooth(aes(p_50, CVBF_50, color = "CVBF_50"), linetype = 1, se = FALSE) +
+  geom_smooth(aes(p_10, logB_10, color = "logB_10"), linetype = 2, se = FALSE) +
+  geom_smooth(aes(p_30, logB_30, color = "logB_30"), linetype = 2, se = FALSE) +
+  geom_smooth(aes(p_50, logB_50, color = "logB_50"), linetype = 2, se = FALSE) +
+  labs(x = "p", y = "log(BF)", color = "Legend") + ylim(c(-15, 70)) + scale_color_manual(values=colors)
+
+plot1
+
+#ggsave("t_test_mean_diff_vs_cvbf_103050.pdf", plot = plot1)
+
+```
+
+
+```{r}
+
+
+plot2 = ggplot(data = dfall10) +
+  geom_point(aes(p_30, CVBF_30)) +
+  # geom_point(aes(p, PTC), color = "purple") +
+  # geom_point(aes(p, PTN), color = "green") +
+  # geom_point(aes(p, logKSb), color = "red") +
+  geom_smooth(aes(p_30, CVBF_30), linetype = 2, se = FALSE) +
+#  geom_point(aes(p_30, logB_30), color = "red") +
+#  geom_smooth(aes(p_30, logB_30), linetype = 2, se = FALSE) +
+  labs(x = "p", y = "log(BF)") + ylim(c(-6, 70))
+
+plot2
+
+#ggsave("mean_diff_CVBF_30.pdf", plot = plot2)
+
+plot3 = ggplot(data = dfall10) +
+  geom_point(aes(p_30, logB_30)) +
+  geom_smooth(aes(p_30, logB_30), linetype = 2, se = FALSE) +
+  labs(x = "p", y = "log(BF)") + ylim(c(-6, 70))
+
+plot3
+
+ggsave("mean_diff_t_test_30.pdf", plot = plot3)
+```
+
+

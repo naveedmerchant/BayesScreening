@@ -1,0 +1,76 @@
+---
+title: "HiggsBosonCVBFcolplot29"
+author: "Naveed Merchant"
+date: "2/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+HiggsCSV = "C:/Users/Naveed/Documents/HIGGS.csv.gz"
+```
+
+## R Markdown
+
+Col 29 plot is below
+
+```{r cars}
+fulltrans = read.csv(file = HiggsCSV, colClasses = c(NA,rep("NULL",times = 21),rep(NA,times = 7)), header = FALSE)
+dim(fulltrans)
+
+noisedataind = fulltrans[,1]== 0
+
+X = fulltrans[noisedataind,]
+#This is "background noise"
+Y = fulltrans[!noisedataind,]
+
+fulltrans2 = fulltrans[1:1000000,]
+
+usedsamptrans = fulltrans2[1:20000,]
+noisedataind3 = usedsamptrans[,1]== 0
+X2 = usedsamptrans[noisedataind3,]
+#This is "background noise"
+Y2 = usedsamptrans[!noisedataind3,]
+
+library(BSCRN)
+library(matrixStats)
+library(foreach)
+library(rootSolve)
+library(doRNG)
+trainsizes = seq(from = 1000, to = 5000, by = 1000)
+numberofsplits = 20
+logBFmat3 = matrix(nrow = length(trainsizes), ncol = numberofsplits)
+set.seed(1000)
+ncores = 20
+
+
+logBFmat3 = matrix(nrow = length(trainsizes), ncol = numberofsplits)
+
+ncores = 20
+for(i in 1:length(trainsizes))
+{
+  for(j in 1:20)
+  {
+    logBFmat3[i,j] = BSCRN::CVBFtestrsplit(dataset1 = X2[,8], dataset2 = Y2[,8], trainsize1 = trainsizes[i], trainsize2 = trainsizes[i])$logBF
+  }
+}
+
+logBFmeans3 = rowMeans(logBFmat3)
+logBFranges3 = rowRanges(logBFmat3)
+
+dfmat3 <- data.frame(trainsize=trainsizes, min=logBFranges3[,1], max=logBFranges3[,2], mean = logBFmeans3)
+library(ggplot2)
+ggplot(dfmat3, aes(x=trainsize))+
+  geom_linerange(aes(ymin=min,ymax=max),linetype=2,color="blue")+
+  geom_point(aes(y=min),size=3,color="red")+
+  geom_point(aes(y=max),size=3,color="red")+
+  geom_point(aes(y=mean),size = 4, color = "green")+
+  geom_line(aes(x = trainsize, y = mean), size = 3, color = "purple", linetype = 2)
+theme_bw()
+
+PolyaTreetest((X2[,2] - mean(c(X2[,2],Y2[,2]))) / sd(c(X2[,2],Y2[,2])), (Y2[,2] - mean(c(X2[,2],Y2[,2]))) / sd(c(X2[,2],Y2[,2])), Ginv = qnorm, c = 1, leveltot = 13)
+
+PolyaTreetest((X2[,8] - mean(c(X2[,8],Y2[,8]))) / sd(c(X2[,8],Y2[,8])), (Y2[,8] - mean(c(X2[,8],Y2[,8]))) / sd(c(X2[,8],Y2[,8])), Ginv = qnorm, c = 1, leveltot = 13)
+```
+
+The plot is the plot of col 29's CVBFs

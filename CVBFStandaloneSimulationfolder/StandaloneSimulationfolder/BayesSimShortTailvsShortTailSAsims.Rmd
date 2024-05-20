@@ -1,0 +1,210 @@
+---
+title: "BayesSimwithShortvShorttwithNumericalmethods"
+author: "Naveed Merchant"
+date: "November 27, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Short Tail Experiments
+
+It has been noticed that the Gaussian Kernel is unstable if the data comes from a very long tail distribution.
+
+If the data comes from a Cauchy distribution, the bayes factor, in general, is unstable.
+
+We verify that switching Kernels, in general, seems to fix problems. Does this kernel still work well with short tail data?
+
+We try to show this in plots and by using "BayesSim"
+
+We now show the "Gaussian v Gaussian problem"
+
+```{r setup and loading}
+library(parallel)
+library(ggplot2)
+source("MarginalLikIntfunctions.R")
+source("Laplacefunction.R")
+set.seed(1000)
+
+p = rbeta(500,.5,.5)
+dlength = 400
+
+dataset1 <- rnorm(dlength)
+dataset2 <- matrix(data = NA, nrow = length(p),ncol = dlength)
+for(i in 1:length(p))
+{
+  unifdraw = runif(dlength)
+  for(j in 1:dlength)
+  {
+    if(unifdraw[j] > p[i])
+    {
+      dataset2[i,j] = rnorm(1)
+    }
+    else
+    {
+      dataset2[i,j] = rnorm(1, mean = 0, sd = sqrt(4))
+    }
+  }
+}
+
+XT1 <- dataset1[1:(length(dataset1)*.5)]
+XV1 <- dataset1[-(1:(length(dataset1)*.5))]
+
+likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+ExpectedKernML1 = laplace.kernH2(y = XT1, x = XV1, hhat = bwlik$maximum)
+
+CL1 <- makeCluster(8)
+clusterExport(cl = CL1, list("XT1","XV1","dataset2","logmarg.specialkernMCimport", "ExpectedKernML1", "dlength", "logSumExp", "HallKernel", "laplace.kernH2", "logintegrand.Hall", "loglike.KHall", "KHall", "hessian"), envir = environment())
+result <- parApply(cl = CL1, dataset2[1:500,], 1, FUN = function(x){
+  XT2 = x[1:(dlength*.5)]
+  XV2 = x[-(1:(dlength*.5))] 
+  likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT2, x = XV2)))}
+  bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+  ExpectedKernML2 = laplace.kernH2(y = XT2, x = XV2, hhat = bwlik$maximum)
+  
+  likvec2 = function(h) {sum(log(HallKernel(h,datagen2 = c(XT1,XT2), x = c(XV1,XV2))))}
+  bwlik2 = optimize(f = function(h){  likvec2(h)}, lower = 0, upper = 10, maximum = TRUE)
+  
+  ExpectedKernMLcomb = laplace.kernH2(y = c(XT1,XT2), x = c(XV1,XV2), hhat = bwlik2$maximum)
+  
+  return(ExpectedKernML1[1] + ExpectedKernML2[1] - ExpectedKernMLcomb[1])
+})
+stopCluster(CL1)
+
+lm4 <- lm(result~p[1:500])
+#plot(p,result, xlab = "p", ylab = "Log Bayes Factor", pch = '*')
+# lw1 = loess(result~p)
+# j <- order(p)
+# plot(p,result, xlab = "p", ylab = "Log Bayes Factor", pch = '*')
+# lines(p[j],lw1$fitted[j],col="red",lwd=3)
+# 
+# 
+# abline(a = 0, b = 0)
+
+dfCVBF = data.frame(logBF = result, p = p)
+ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red")
+
+sorteddfCVBF = dfCVBF[order(dfCVBF$p),]
+nonparvarest = 0
+for(j in 1:(nrow(sorteddfCVBF) - 1) )
+{
+  nonparvarest = nonparvarest + (sorteddfCVBF[j + 1, 1] - sorteddfCVBF[j, 1])^2
+}
+nonparvarest = nonparvarest / (2* nrow(sorteddfCVBF))
+
+#Variance estimate
+
+nonparvarest
+
+#Standard deviation estimate
+
+sqrt(nonparvarest)
+
+
+```
+
+We are examining the log CVBF, of the test that checks whether a standard Gaussian is the same as a mixture of a standard Gaussian and a normal with higher variance.
+
+Lets see how KS test does on this problem
+```{r KS test equivalent}
+kslist = c()
+for(j in 1:500)
+{
+  kslist[j] =  ks.test(dataset1,dataset2[j,])$p
+}
+
+dfKS = data.frame(logks = log(kslist), p = p)
+ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue")
+
+
+
+```
+
+What about Polya tree test with a normal base distribution?
+
+```{r comparison to polya tree test}
+PTlist = c()
+for(j in 1:500)
+{
+  mediancombineddataset = median(c(dataset1, dataset2[j,]))
+  IQRcombineddataset = IQR(c(dataset1, dataset2[j,]))
+  dataset1adj = (dataset1 - mediancombineddataset) / (IQRcombineddataset / 1.36)
+  dataset2adj = (dataset2[j,] - mediancombineddataset) / (IQRcombineddataset / 1.36)
+  PTlist[j] = PolyaTreetest(dataset1,dataset2[j,], Ginv = qnorm, c = 1, leveltot = 9)$logBF
+  #print(j)
+}
+plot(p[1:500],PTlist, xlab = "p", ylab = "log BF values from Polya Tree test", pch = '*')
+abline(a=0,b=0, col = "blue")
+
+dfPT = data.frame(logBF = PTlist, p = p)
+ggplot(dfPT, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red")
+
+sorteddfPT = dfPT[order(dfPT$p),]
+nonparvarest = 0
+for(j in 1:(nrow(sorteddfPT) - 1) )
+{
+  nonparvarest = nonparvarest + (sorteddfPT[j + 1, 1] - sorteddfPT[j, 1])^2
+}
+nonparvarest = nonparvarest / (2* nrow(sorteddfPT))
+
+#Variance estimate
+
+nonparvarest
+
+#Standard deviation estimate
+
+sqrt(nonparvarest)
+
+
+
+```
+
+
+
+What about Polya tree with Cauchy base distribution?
+
+
+```{r comparison to polya tree test2}
+PTlist2 = c()
+for(j in 1:500)
+{
+  mediancombineddataset = median(c(dataset1, dataset2[j,]))
+  IQRcombineddataset = IQR(c(dataset1, dataset2[j,]))
+  dataset1adj = (dataset1 - mediancombineddataset) / (IQRcombineddataset / 1.36)
+  dataset2adj = (dataset2[j,] - mediancombineddataset) / (IQRcombineddataset / 1.36)
+  PTlist2[j] = PolyaTreetest(dataset1adj,dataset2adj, Ginv = qcauchy, c = 1, leveltot = 10)$logBF
+  #print(j)
+}
+plot(p[1:500],PTlist2, xlab = "p", ylab = "log BF values from Polya Tree test", pch = '*')
+abline(a=0,b=0, col = "blue")
+
+
+dfPT2 = data.frame(logBF = PTlist2, p = p)
+ggplot(dfPT2, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red")
+
+#quantile(x = PTNull, probs = .9)
+#quantile(x = CVBF, probs = .9)
+
+sorteddfPT = dfPT2[order(dfPT$p),]
+nonparvarest = 0
+for(j in 1:(nrow(sorteddfPT) - 1) )
+{
+  nonparvarest = nonparvarest + (sorteddfPT[j + 1, 1] - sorteddfPT[j, 1])^2
+}
+nonparvarest = nonparvarest / (2* nrow(sorteddfPT))
+
+#Variance estimate
+
+nonparvarest
+
+#Standard deviation estimate
+
+sqrt(nonparvarest)
+
+```
+
+
+The Polya tree with a Cauchy base distribution cross the line later than other methods.

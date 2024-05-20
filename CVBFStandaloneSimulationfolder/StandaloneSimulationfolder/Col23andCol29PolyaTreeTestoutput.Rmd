@@ -1,0 +1,56 @@
+---
+title: "Col23and29PolyaTreeTestoutput"
+author: "Naveed Merchant"
+date: "2/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+HiggsCSV = "C:\\Users\\Naveed\\Documents\\HIGGS.csv.gz"
+
+
+```
+
+## Polya Tree test output for col 23
+
+Want to make compute PTBF from Higgs data set
+
+This can be done with the BSCRN package easily
+
+```{r PT col 23 }
+
+fulltrans = read.csv(file = HiggsCSV, colClasses = c(NA,rep("NULL",times = 21),rep(NA,times = 7)), header = FALSE)
+dim(fulltrans)
+
+noisedataind = fulltrans[,1]== 0
+
+X = fulltrans[noisedataind,]
+#This is "background noise"
+Y = fulltrans[!noisedataind,]
+
+fulltrans2 = fulltrans[1:1000000,]
+
+usedsamptrans = fulltrans2[1:20000,]
+noisedataind3 = usedsamptrans[,1]== 0
+X2 = usedsamptrans[noisedataind3,]
+#This is "background noise"
+Y2 = usedsamptrans[!noisedataind3,]
+
+BSCRN::PolyaTreetest(X2[,2], Y2[,2], leveltot = 13)
+
+ks.test(X2[,2], Y2[,2])
+
+
+```
+
+Column 23 log BF is roughly -263.6514
+
+```{r PT col29}
+BSCRN::PolyaTreetest(X2[,8], Y2[,8], leveltot = 13)
+
+ks.test(X2[,8], Y2[,8])
+
+```
+
+Column 29 log BF is roughly 234.7242

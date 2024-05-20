@@ -1,0 +1,75 @@
+---
+title: "HiggsBosonRfileWithPackage"
+author: "Naveed Merchant"
+date: "February 21, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+HiggsCSV = "C:\\Users\\Naveed\\Documents\\HIGGS.csv.gz"
+```
+
+## KDEs of plots
+
+The following code yields KDEs of col 23 and 29 in the Higgs Boson data set.
+
+```{r cars}
+library(BSCRN)
+fulltrans = read.csv(file = HiggsCSV, colClasses = c(NA,rep("NULL",times = 21),rep(NA,times = 7)), header = FALSE)
+dim(fulltrans)
+
+noisedataind = fulltrans[,1]== 0
+
+X = fulltrans[noisedataind,]
+#This is "background noise"
+Y = fulltrans[!noisedataind,]
+
+fulltrans2 = fulltrans[1:1000000,]
+
+usedsamptrans = fulltrans2[1:20000,]
+noisedataind3 = usedsamptrans[,1]== 0
+X2 = usedsamptrans[noisedataind3,]
+#This is "background noise"
+Y2 = usedsamptrans[!noisedataind3,]
+
+
+plot(density(Y[,8], n = 511, from = 0, to = 4), xlab = "x", main = "")
+lines(density(X[,8], n = 511, from = 0, to = 4), col = "blue")
+
+plot(density(Y[,2], n = 511, from = 0, to = 3), xlab = "x", main = "")
+lines(density(X[,2], n = 511, from = 0, to = 3), col = "blue")
+
+
+```
+
+The following code draws from the predictive posterior of the Higgs Boson data set, and then plots them on a graph.
+
+```{r pressure}
+set.seed(500)
+PTcol23 = PolyaTreePriorLikCons(datasetX = X2[,2], c = 1, Ginv = qnorm, leveltot = 9)
+PTcol23draws = PolyaTreePredDraws(PTcol23, ndraw = 1000)
+
+
+set.seed(1000)
+trainindX = sample(1:nrow(X2) ,size = 5000)
+trainindY = sample(1:nrow(Y2) ,size = 5000)
+XT1 <- X2[trainindX,2]
+XV1 <- X2[-(trainindX),2]
+
+bwdraws = BSCRN::PredCVBFIndepMHbw(ndraw = 1000, maxIter = 3000, XT1 = XT1, XV1 = XV1)
+CVBFpredpost = PredCVBFDens(bwdraws$predbwsamp, XT1 = XT1)
+
+predpostavg2 = CVBFpredpost(seq(from = 0, to = 4, length.out = 10000))
+
+plot(density(fulltrans[noisedataind,2], from = 0, to = 4, n = 10000), lwd = 2)
+lines(seq(from = 0, to = 4, length.out = 10000), predpostavg2, col = "purple", lwd = 2)
+lines(density(PTcol23draws, from = 0, to = 4, n = 10000), col = "red", lwd = 2)
+
+
+
+
+
+```
+
+
