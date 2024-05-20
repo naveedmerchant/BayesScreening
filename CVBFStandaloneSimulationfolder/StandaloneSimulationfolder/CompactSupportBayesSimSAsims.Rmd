@@ -1,0 +1,325 @@
+---
+title: "CompactSupportBsim"
+author: "Naveed Merchant"
+date: "November 27, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Compact Support Experiments
+
+We are partially concerned with how well our test does if the data comes from a distribution that has a bounded support. (I.e. (a,b)).
+
+We examine how well it does at distinguising the uniform from a mixture of a uniform and a beta(5,5) (it has the same mean but a different shape)
+```{r setup and loading}
+library(parallel)
+library(ggplot2)
+source("MarginalLikIntfunctions.R")
+source("Laplacefunction.R")
+set.seed(1000)
+
+p = rbeta(500,.5,.5)
+dlength = 400
+
+dataset1 <- runif(dlength)
+dataset2 <- matrix(data = NA, nrow = length(p),ncol = dlength)
+for(i in 1:length(p))
+{
+  unifdraw = runif(dlength)
+  for(j in 1:dlength)
+  {
+    if(unifdraw[j] > p[i])
+    {
+      dataset2[i,j] = runif(1)
+    }
+    else
+    {
+      dataset2[i,j] = rbeta(1,shape1 = 4, shape2 = 4)
+    }
+  }
+}
+XT1 <- dataset1[1:(length(dataset1)*.3)]
+XV1 <- dataset1[-(1:(length(dataset1)*.3))]
+
+likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+ExpectedKernML1 = laplace.kernH(y = XT1, x = XV1, hhat = bwlik$maximum)
+
+CL1 <- makeCluster(8)
+clusterExport(cl = CL1, list("XT1","XV1","dataset2","logmarg.specialkernMCimport", "ExpectedKernML1", "dlength", "logSumExp", "HallKernel", "laplace.kernH", "logintegrand.Hall", "loglike.KHall", "KHall"), envir = environment())
+result <- parApply(cl = CL1, dataset2[1:500,], 1, FUN = function(x){
+  XT2 = x[1:(dlength*.3)]
+  XV2 = x[-(1:(dlength*.3))] 
+  likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT2, x = XV2)))}
+  bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+  ExpectedKernML2 = laplace.kernH(y = XT2, x = XV2, hhat = bwlik$maximum)
+  
+  likvec2 = function(h) {sum(log(HallKernel(h,datagen2 = c(XT1,XT2), x = c(XV1,XV2))))}
+  bwlik2 = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+  
+  ExpectedKernMLcomb = laplace.kernH(y = c(XT1,XT2), x = c(XV1,XV2), hhat = bwlik2$maximum)
+  
+  return(ExpectedKernML1[1] + ExpectedKernML2[1] - ExpectedKernMLcomb[1])
+})
+stopCluster(CL1)
+
+# lm4 <- lm(result~p[1:500])
+# lw1 = loess(result~p)
+# j <- order(p)
+# plot(p,result, xlab = "p", ylab = "Log Bayes Factor", pch = '*')
+# lines(p[j],lw1$fitted[j],col="red",lwd=3)
+# 
+# abline(a = 0, b = 0)
+
+#abline(lm4, col = "blue")
+
+
+
+dfCVBF = data.frame(logBF = result, p = p)
+ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red")
+
+
+sorteddfCVBF = dfCVBF[order(dfCVBF$p),]
+nonparvarest = 0
+for(j in 1:(nrow(sorteddfCVBF) - 1) )
+{
+  nonparvarest = nonparvarest + (sorteddfCVBF[j + 1, 1] - sorteddfCVBF[j, 1])^2
+}
+nonparvarest = nonparvarest / (2* nrow(sorteddfCVBF))
+
+#Variance estimate
+
+nonparvarest
+
+#Standard deviation estimate
+
+sqrt(nonparvarest)
+
+```
+
+We are examining the log BF, of the test that checks whether a standard uniform is the same as that of a mixture of a standard uniform and a beta(5,5), where p is changing from -
+
+This is the raw data, that is both distributions have [0,1] support and are unchanged.
+
+The next plot redoes this but sees if there's a difference in the data if we examine just their logs instead and reflect the training dat.
+
+
+```{r Recommended variant}
+dataset1st = dataset1
+dataset2st = dataset2
+
+dataset1 = -log(dataset1)
+dataset2 = -log(dataset2)
+XT1 <- c(dataset1[1:(length(dataset1)*.3)],-dataset1[1:(length(dataset1)*.3)])
+XV1 <- dataset1[-(1:(length(dataset1)*.3))]
+
+likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
+bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+ExpectedKernML1 = laplace.kernH(y = XT1, x = XV1, hhat = bwlik$maximum)
+
+CL1 <- makeCluster(8)
+clusterExport(cl = CL1, list("XT1","XV1","dataset2","logmarg.specialkernMCimport", "ExpectedKernML1", "dlength", "logSumExp", "HallKernel", "laplace.kernH", "logintegrand.Hall", "loglike.KHall", "KHall"), envir = environment())
+result <- parApply(cl = CL1, dataset2[1:500,], 1, FUN = function(x){
+  XT2 = c(x[1:(dlength*.3)], -x[1:(dlength*.3)])
+  XV2 = x[-(1:(dlength*.3))] 
+  likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT2, x = XV2)))}
+  bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+  ExpectedKernML2 = laplace.kernH(y = XT2, x = XV2, hhat = bwlik$maximum)
+  
+  likvec2 = function(h) {sum(log(HallKernel(h,datagen2 = c(XT1,XT2), x = c(XV1,XV2))))}
+  bwlik2 = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
+  
+  ExpectedKernMLcomb = laplace.kernH(y = c(XT1,XT2), x = c(XV1,XV2), hhat = bwlik2$maximum)
+  
+  return(ExpectedKernML1[1] + ExpectedKernML2[1] - ExpectedKernMLcomb[1])
+})
+stopCluster(CL1)
+# lw1 = loess(result~p)
+# j <- order(p)
+# plot(p,result, xlab = "p", ylab = "Log Bayes Factor", pch = '*')
+# lines(p[j],lw1$fitted[j],col="red",lwd=3)
+
+
+dfCVBF2 = data.frame(logBF = result, p = p)
+ggplot(dfCVBF2, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red")
+
+sorteddfCVBF = dfCVBF2[order(dfCVBF2$p),]
+nonparvarest = 0
+for(j in 1:(nrow(sorteddfCVBF) - 1) )
+{
+  nonparvarest = nonparvarest + (sorteddfCVBF[j + 1, 1] - sorteddfCVBF[j, 1])^2
+}
+nonparvarest = nonparvarest / (2* nrow(sorteddfCVBF))
+
+#Variance estimate
+
+nonparvarest
+
+#Standard deviation estimate
+
+sqrt(nonparvarest)
+
+#abline(lm4, col = "blue")
+dataset1 = dataset1st
+dataset2 = dataset2st
+```
+
+There's a change in shape in the BF
+
+We do this with ks test now instead.
+
+
+
+
+
+```{r ks test equivalent}
+
+kslist = c()
+for(j in 1:500)
+{
+  kslist[j] =  ks.test(dataset1,dataset2[j,])$p
+}
+
+Blist = c()
+e = exp(1)
+for(j in 1:500)
+{
+  if(kslist[j] < 1/e)
+  {
+    Blist[j] = 1 / (-e * kslist[j] * log(kslist[j]))
+  }
+  else{
+    Blist[j] = 1
+  }
+  if(kslist[j] == 0)
+  {
+    Blist[j] = Inf
+  }
+}
+Blist = log(Blist)
+sum(Blist == 0)
+
+## 21
+
+# plot(p[1:500],log(kslist), xlab = "p", ylab = "p-values from KS test", pch = '*')
+# abline(a=log(0.05),b=0, col = "blue")
+
+dfKS = data.frame(logks = log(kslist), p = p, logB = Blist)
+ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue")
+
+plot2 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue")
+
+plot2
+
+ggsave("BayesSimPlots/KSBCompact.pdf",plot = plot2, device = "pdf")
+
+
+```
+
+Comparing this to Polya Tree with a normal base distribution.
+
+
+
+
+```{r Polya Tree comparison}
+
+PTlist = c()
+for(j in 1:500)
+{
+  meancombineddataset = mean(c(dataset1, dataset2[j,]))
+  sdcombineddataset = sd(c(dataset1, dataset2[j,]))
+  dataset1adj = (dataset1 - meancombineddataset) / sdcombineddataset
+  dataset2adj = (dataset2[j,] - meancombineddataset) / sdcombineddataset
+  PTlist[j] = PolyaTreetest(dataset1adj,dataset2adj, Ginv = qnorm, c = 1, leveltot = 10)$logBF
+}
+plot(p[1:500],PTlist, xlab = "p", ylab = "log BF values from Polya Tree test", pch = '*')
+abline(a=0,b=0, col = "blue")
+
+
+
+dfPT = data.frame(logBF = PTlist, p = p)
+ggplot(dfPT, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red")
+
+sorteddfPT = dfPT[order(dfPT$p),]
+nonparvarest = 0
+for(j in 1:(nrow(sorteddfPT) - 1) )
+{
+  nonparvarest = nonparvarest + (sorteddfPT[j + 1, 1] - sorteddfPT[j, 1])^2
+}
+nonparvarest = nonparvarest / (2* nrow(sorteddfPT))
+
+#Variance estimate
+
+nonparvarest
+
+#Standard deviation estimate
+
+sqrt(nonparvarest)
+
+```
+
+Comparing this to Polya Tree with a Cauchy base distribution.
+
+
+```{r Polya Tree comparison2}
+
+PTlist2 = c()
+for(j in 1:500)
+{
+  mediancombineddataset = median(c(dataset1, dataset2[j,]))
+  IQRcombineddataset = IQR(c(dataset1, dataset2[j,]))
+  dataset1adj = (dataset1 - mediancombineddataset) / (IQRcombineddataset / 1.36)
+  dataset2adj = (dataset2[j,] - mediancombineddataset) / (IQRcombineddataset / 1.36)
+  PTlist2[j] = PolyaTreetest(dataset1adj,dataset2adj, Ginv = qcauchy, c = 1, leveltot = 10)$logBF
+}
+# plot(p[1:500],PTlist2, xlab = "p", ylab = "log BF values from Polya Tree test", pch = '*')
+# abline(a=0,b=0, col = "blue")
+
+dfPT2 = data.frame(logBF = PTlist2, p = p)
+ggplot(dfPT2, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red")
+
+sorteddfPT = dfPT2[order(dfPT$p),]
+nonparvarest = 0
+for(j in 1:(nrow(sorteddfPT) - 1) )
+{
+  nonparvarest = nonparvarest + (sorteddfPT[j + 1, 1] - sorteddfPT[j, 1])^2
+}
+nonparvarest = nonparvarest / (2* nrow(sorteddfPT))
+
+#Variance estimate
+
+nonparvarest
+
+#Standard deviation estimate
+
+sqrt(nonparvarest)
+
+
+
+```
+It looks like CVBF with reflection does the best.
+
+```{r}
+dfall = data.frame(PTC = dfPT2$logBF, PTN = dfPT$logBF, CVBFAvg = dfCVBF$logBF, logKSb = dfKS$logB, p = dfCVBF$p, CVBFAvgAdj = dfCVBF2$logBF)
+
+plot1 = ggplot(data = dfall, mapping = aes(p, CVBFAvg)) +
+  geom_point() +
+  geom_point(aes(p, PTC), color = "purple") +
+  geom_point(aes(p, PTN), color = "green") +
+  geom_point(aes(p, logKSb), color = "red") +
+  geom_point(aes(p, CVBFAvgAdj), color = "cyan") +
+  geom_smooth(aes(p, PTC), color = "pink") +
+  geom_smooth(aes(p, PTN), color = "yellow") +
+  geom_smooth(aes(p, CVBFAvg), color = "blue") +
+  geom_smooth(aes(p, logKSb), color = "orange") +
+  geom_smooth(aes(p, CVBFAvgAdj), color = "brown")
+  labs(x = "p", y = "log(BF)")
+
+plot1
+ggsave("BayesSimPlots/jointlogBFcompact.pdf",plot = plot1, device = "pdf")
+
+
+```
