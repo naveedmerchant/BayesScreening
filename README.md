@@ -3,9 +3,9 @@ Naveed Merchant
   - [Installation](#installation)
   - [Usage](#usage)
   - [Examples](#examples)
-  - [Vignette](#Vignette)
-  - [Maunual](#Manual)
-  - [CVBF Files](#CVBF Files)
+  - [Vignette](#vignette)
+  - [Manual](#manual)
+  - [CVBF Files](#cvbf-files)
 ## Introduction
 
 BayesScreening is an R package for screening important variables for data sets with large amounts of predictors. This screening is intended for binary classification. It does this by applying Bayesian tests that check if two or more samples have the same distribution. There are also other screening methods to compare these methods to in this package. This package also supports running this screening in parallel.
@@ -130,6 +130,4 @@ A manual containing documentation of all the functions in the package is also av
 
 ## CVBF Files
 
-Some of the R code used to produce the figures in the CVBF figure can be found in the `CVBFStandaloneSimulationfolder`. Check out the [NEWS.md](https://github.com/naveedmerchant/BayesScreening/blob/CVBF_files/NEWS.md) page for more details.
-
-
+Some of the R code used to produce the figures in the CVBF figure can be found in the [`CVBFStandaloneSimulationfolder`](https://github.com/naveedmerchant/BayesScreening/tree/CVBF_files/CVBFStandaloneSimulationfolder/StandaloneSimulationfolder). Check out the [NEWS.md](https://github.com/naveedmerchant/BayesScreening/blob/CVBF_files/NEWS.md) page for more details.
