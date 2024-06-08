@@ -83,7 +83,7 @@ stopCluster(CL1)
 
 
 dfCVBF = data.frame(logBF = result, p = p)
-plot1 = ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE)
+plot1 = ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 plot1
 ggsave("BayesSimPlots/CVBFmeandiff.pdf",plot = plot1, device = "pdf")
 
@@ -132,15 +132,15 @@ Blist = log(Blist)
 
 dfKS = data.frame(logks = log(kslist), p = p, logB = Blist)
 
-ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
-ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 sum(Blist == 0)
 
 #This is 99
 
-plot1 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-70, 50)) + geom_smooth(se = FALSE)
+plot1 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-70, 50)) + geom_smooth(se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 #ggsave("BayesSimPlots/tbmeandiff.pdf", plot = plot1, device = "pdf")
 
@@ -214,7 +214,7 @@ stopCluster(CL1)
 
 
 dfCVBF = data.frame(logBF = result, p = p)
-plot1 = ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE)
+plot1 = ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 plot1
 ggsave("BayesSimPlots/CVBFmeandiff.pdf",plot = plot1, device = "pdf")
 
@@ -263,15 +263,15 @@ Blist = log(Blist)
 
 dfKS = data.frame(logks = log(kslist), p = p, logB = Blist)
 
-ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
-ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 sum(Blist == 0)
 
 #This is 99
 
-plot1 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-70, 50)) + geom_smooth(se = FALSE)
+plot1 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-70, 50)) + geom_smooth(se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 #ggsave("BayesSimPlots/tbmeandiff.pdf", plot = plot1, device = "pdf")
 
@@ -345,7 +345,7 @@ stopCluster(CL1)
 
 
 dfCVBF = data.frame(logBF = result, p = p)
-plot1 = ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE)
+plot1 = ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 plot1
 ggsave("BayesSimPlots/CVBFmeandiff.pdf",plot = plot1, device = "pdf")
 
@@ -402,7 +402,7 @@ sum(Blist == 0)
 
 #This is 99
 
-plot1 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-70, 50)) + geom_smooth(se = FALSE)
+plot1 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-70, 50)) + geom_smooth(se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 #ggsave("BayesSimPlots/tbmeandiff.pdf", plot = plot1, device = "pdf")
 
@@ -415,12 +415,12 @@ dfCVBF50 = dfCVBF
 
 ```{r}
 
-ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
-ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 dfall10 = data.frame(p_10 = dfKS10$p, p_30 = dfKS30$p, p_50 = dfKS50$p, logB_10 = dfKS10$logB, logB_30 = dfKS30$logB,
-           logB_50 = dfKS50$logB, CVBF_10 = dfCVBF10$logBF, CVBF_30 = dfCVBF30$logBF,  CVBF_50 = dfCVBF50$logBF)
+           logB_50 = dfKS50$logB, CVBF_10 = dfCVBF10$logBF, CVBF_30 = dfCVBF30$logBF,  CVBF_50 = dfCVBF50$logBF) 
 
 colorBlindGrey8   <- c("#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#009E73", "#56B4E9")
 colors <- c("CVBF_10"=colorBlindGrey8[1], "CVBF_30"=colorBlindGrey8[2], "CVBF_50"=colorBlindGrey8[3], "logB_10" = colorBlindGrey8[4], "logB_30" = colorBlindGrey8[5], "logB_50" = colorBlindGrey8[6])
@@ -436,7 +436,8 @@ plot1 = ggplot(data = dfall10) +
   geom_smooth(aes(p_10, logB_10, color = "logB_10"), linetype = 2, se = FALSE) +
   geom_smooth(aes(p_30, logB_30, color = "logB_30"), linetype = 2, se = FALSE) +
   geom_smooth(aes(p_50, logB_50, color = "logB_50"), linetype = 2, se = FALSE) +
-  labs(x = "p", y = "log(BF)", color = "Legend") + ylim(c(-15, 70)) + scale_color_manual(values=colors)
+  labs(x = "p", y = "log(BF)", color = "Legend") + ylim(c(-15, 70)) + scale_color_manual(values=colors) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 plot1
 
@@ -456,7 +457,7 @@ plot2 = ggplot(data = dfall10) +
   geom_smooth(aes(p_30, CVBF_30), linetype = 2, se = FALSE) +
 #  geom_point(aes(p_30, logB_30), color = "red") +
 #  geom_smooth(aes(p_30, logB_30), linetype = 2, se = FALSE) +
-  labs(x = "p", y = "log(BF)") + ylim(c(-6, 70))
+  labs(x = "p", y = "log(BF)") + ylim(c(-6, 70)) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 plot2
 
@@ -465,7 +466,7 @@ plot2
 plot3 = ggplot(data = dfall10) +
   geom_point(aes(p_30, logB_30)) +
   geom_smooth(aes(p_30, logB_30), linetype = 2, se = FALSE) +
-  labs(x = "p", y = "log(BF)") + ylim(c(-6, 70))
+  labs(x = "p", y = "log(BF)") + ylim(c(-6, 70)) +  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 plot3
 
