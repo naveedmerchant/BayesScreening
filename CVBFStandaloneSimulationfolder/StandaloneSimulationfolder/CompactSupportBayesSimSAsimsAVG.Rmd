@@ -48,7 +48,7 @@ likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
 bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
 ExpectedKernML1 = laplace.kernH(y = XT1, x = XV1, hhat = bwlik$maximum)
 
-CL1 <- makeCluster(8)
+CL1 <- makeCluster(16)
 clusterExport(cl = CL1, list("XT1","XV1","dataset2","logmarg.specialkernMCimport", "ExpectedKernML1", "dlength", "logSumExp", "HallKernel", "laplace.kernH2", "logintegrand.Hall", "loglike.KHall", "KHall", "hessian", "dataset1"), envir = environment())
 result <- parApply(cl = CL1, dataset2[1:500,], 1, FUN = function(x){
   BFi = 0
@@ -93,7 +93,8 @@ stopCluster(CL1)
 
 
 dfCVBF = data.frame(logBF = result, p = p)
-plot1 = ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE)
+plot1 = ggplot(dfCVBF, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 plot1
 ggsave("BayesSimPlots/CVBFCompactnaive.pdf",plot = plot1, device = "pdf")
 
@@ -135,7 +136,7 @@ likvec = function(h) {sum(log(HallKernel(h,datagen2 = XT1, x = XV1)))}
 bwlik = optimize(f = function(h){  likvec(h)}, lower = 0, upper = 10, maximum = TRUE)
 ExpectedKernML1 = laplace.kernH(y = XT1, x = XV1, hhat = bwlik$maximum)
 
-CL1 <- makeCluster(8)
+CL1 <- makeCluster(16)
 clusterExport(cl = CL1, list("XT1","XV1","dataset2","logmarg.specialkernMCimport", "ExpectedKernML1", "dlength", "logSumExp", "HallKernel", "laplace.kernH2", "logintegrand.Hall", "loglike.KHall", "KHall", "hessian", "dataset1"), envir = environment())
 result <- parApply(cl = CL1, dataset2[1:500,], 1, FUN = function(x){
   BFi = 0
@@ -167,7 +168,8 @@ stopCluster(CL1)
 # lines(p[j],lw1$fitted[j],col="red",lwd=3)
 
 dfCVBF2 = data.frame(logBF = result, p = p)
-plot1 = ggplot(dfCVBF2, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE) + ylim(c(-50,100))
+plot1 = ggplot(dfCVBF2, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE) + ylim(c(-50,100)) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 plot1
 ggsave("BayesSimPlots/CVBFCompactimproved.pdf",plot = plot1, device = "pdf")
@@ -212,7 +214,8 @@ for(j in 1:500)
 # abline(a=log(0.05),b=0, col = "blue")
 
 dfKS = data.frame(logks = log(kslist), p = p)
-plot1 = ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100))
+plot1 = ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 plot1
 ggsave("BayesSimPlots/KSCompact.pdf",plot = plot1, device = "pdf")
 
@@ -237,15 +240,18 @@ Blist = log(Blist)
 
 dfKS = data.frame(logks = log(kslist), p = p, logB = Blist)
 
-ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+ggplot(dfKS, aes(x = p, y = logks)) + geom_point()  + geom_hline(yintercept = log(.05), color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
-ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE)
+ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-50,100)) + geom_smooth(se = FALSE) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 sum(Blist == 0)
 
 #This is 99
 
-plot1 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-70, 50)) + geom_smooth(se = FALSE)
+plot1 = ggplot(dfKS, aes(x = p, y = logB)) + geom_point()  + geom_hline(yintercept = 1, color = "blue") + ylim(c(-70, 50)) + geom_smooth(se = FALSE) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 ggsave("BayesSimPlots/KSBCompact.pdf", plot = plot1, device = "pdf")
 
@@ -274,7 +280,8 @@ abline(a=0,b=0, col = "blue")
 
 
 dfPT = data.frame(logBF = PTlist, p = p)
-plot1 = ggplot(dfPT, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE) + ylim(c(-50,100))
+plot1 = ggplot(dfPT, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE) + ylim(c(-50,100)) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 plot1
 ggsave("BayesSimPlots/PTNCompact.pdf",plot = plot1, device = "pdf")
 
@@ -314,7 +321,8 @@ for(j in 1:500)
 # abline(a=0,b=0, col = "blue")
 
 dfPT2 = data.frame(logBF = PTlist2, p = p)
-plot1 = ggplot(dfPT2, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE) + ylim(c(-50,100))
+plot1 = ggplot(dfPT2, aes(x = p, y = logBF)) + geom_point()  + geom_hline(yintercept = 0, color = "blue") + geom_smooth(colour = "red", se = FALSE) + ylim(c(-50,100)) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 plot1
 ggsave("BayesSimPlots/PTCCompact.pdf",plot = plot1, device = "pdf")
@@ -357,7 +365,8 @@ plot1 = ggplot(data = dfall, mapping = aes(p, CVBFAvg)) +
   geom_smooth(aes(p, CVBFAvg), color = "blue", se = FALSE) +
   geom_smooth(aes(p, logKSb), color = "orange", se = FALSE) +
   geom_smooth(aes(p, CVBFAvgAdj), color = "brown", se = FALSE) +
-  labs(x = "p", y = "log(BF)") + ylim(c(-50,80))
+  labs(x = "p", y = "log(BF)") + ylim(c(-50,80)) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 plot1
 ggsave("BayesSimPlots/jointlogBFcompact.pdf",plot = plot1, device = "pdf")
@@ -373,7 +382,8 @@ plot2 = ggplot(data = dfall, mapping = aes(p, CVBFAvg)) +
   geom_smooth(aes(p, CVBFAvg), color = "blue", se = FALSE) +
   geom_smooth(aes(p, logKSb), color = "orange", se = FALSE) +
   geom_smooth(aes(p, CVBFAvgAdj), color = "brown", se = FALSE) +
-  labs(x = "p", y = "log(BF)") + ylim(c(-50,100))
+  labs(x = "p", y = "log(BF)") + ylim(c(-50,100)) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 ggsave("BayesSimPlots/jointlogBFcompactfull.pdf",plot = plot2, device = "pdf")
 
@@ -385,7 +395,7 @@ ggsave("BayesSimPlots/jointlogBFcompactfull.pdf",plot = plot2, device = "pdf")
 
 dfall = read.csv("logBFandKSvaluesforcompact.csv")
 colorBlindGrey8   <- c("#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#009E73")
-colors <- c("Polya Tree Cauchy Base"=colorBlindGrey8[1], "Polya Tree Normal Base"=colorBlindGrey8[2], "Average CVBF of 30 splits"=colorBlindGrey8[3], "Selke's KS test 'B-value'" = colorBlindGrey8[4], "Data Reflection CVBF" = colorBlindGrey8[5] )
+colors <- c("Polya Tree Cauchy Base"=colorBlindGrey8[1], "Polya Tree Normal Base"=colorBlindGrey8[2], "Average CVBF of 30 splits"=colorBlindGrey8[3], "Selke's KS test 'B-value'" = colorBlindGrey8[4], "Data Reflection Adjusted CVBF" = colorBlindGrey8[5] )
 
 
 plot1 = ggplot(data = dfall, mapping = aes(p, CVBFAvg)) +
@@ -398,7 +408,8 @@ plot1 = ggplot(data = dfall, mapping = aes(p, CVBFAvg)) +
   geom_smooth(aes(p, CVBFAvg, color = "Average CVBF of 30 splits"), linetype = 6, se = FALSE) +
   geom_smooth(aes(p, logKSb, color = "Selke's KS test 'B-value'"), linetype = 4, se = FALSE) +
   geom_smooth(aes(p, CVBFAvgAdj, color = "Data Reflection Adjusted CVBF"), se = FALSE) +
-  labs(x = "p", y = "log(BF)", color = "Legend") + ylim(c(-50, 80)) + scale_color_manual(values=colors)
+  labs(x = "p", y = "log(BF)", color = "Legend") + ylim(c(-50, 80)) + scale_color_manual(values=colors) +
+  theme_minimal() + theme(axis.text.x=element_text(size=12), axis.text.y = element_text(size=12))
 
 plot1
 

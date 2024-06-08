@@ -304,7 +304,7 @@ ggsave("BayesSimPlots/jointlogBFLongvLongfull.pdf",plot = plot2, device = "pdf")
 ```{r}
 
 dfall = read.csv("logBFsandKSvaluesforlongvlong.csv")
-colorBlindGrey8   <- c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c")
+colorBlindGrey8   <- c("#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 colors <- c("Polya Tree Cauchy Base"=colorBlindGrey8[1], "Polya Tree Normal Base"=colorBlindGrey8[2], "Average CVBF of 30 splits"=colorBlindGrey8[3], "Selke's KS test 'B-value'" = colorBlindGrey8[4])
 plot1 = ggplot(data = dfall, mapping = aes(p, CVBFAvg)) +
 #  geom_point() +
